@@ -14,7 +14,6 @@ __author__ = 'acushner'
 
 def parse_file(name):
     res_pc, res_cp = defaultdict(set), {}
-
     for l in U.read_file(name):
         parent, child = l.split(')')
         res_pc[parent].add(child)
@@ -33,9 +32,8 @@ def _get_parents(orbital_map, name):
     while True:
         name = orbital_map.get(name)
         if not name:
-            break
+            return res
         res[name] = next(c)
-    return res
 
 
 def calc_num_transfers(orbital_map):
@@ -46,7 +44,6 @@ def calc_num_transfers(orbital_map):
 
 
 def __main():
-    print(parse_file('06.test'))
     with U.localtimer():
         print(asyncio.run(calc_orbits(parse_file('06')[0])))
         print(calc_num_transfers(parse_file('06')[1]))

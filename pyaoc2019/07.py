@@ -1,10 +1,9 @@
 import operator as op
 from functools import partial
-from itertools import count
-from typing import NamedTuple, Callable, List, Dict, Tuple, Optional
+from itertools import count, permutations, repeat
+from typing import NamedTuple, Callable, List, Dict, Tuple
 
 from cytoolz import memoize, first
-from cytoolz.itertoolz import rest
 
 import utils as U
 
@@ -45,19 +44,35 @@ def oc_run_and_write(f, instructions: List[int], *args):
     instructions[out_idx] = f(a, b)
 
 
-def oc_input(instructions, out_idx, inputs):
-    instructions[out_idx] = inputs
+def oc_input(instructions, out_idx, input):
+    instructions[out_idx] = input
 
 
-def oc_output(instructions, idx):
-    print('out', idx)
+class Atom:
+    def __init__(self):
+        self.value = None
+
+    @property
+    def value(self):
+        return self._val
+
+    @value.setter
+    def value(self, val):
+        self._val = val
 
 
-def oc_jump(f, instructions, pc, test, out):
+output_register = Atom()
+
+
+def oc_output(_, value):
+    output_register.value = value
+
+
+def oc_jump(f, _, pc, test, out):
     return out if f(test) else pc + 2
 
 
-def oc_comp(f):
+def oc_comp(f: Callable):
     return lambda *args: int(f(*args))
 
 
@@ -82,35 +97,66 @@ def parse_file(name):
     return parse_data(first(U.read_file(name)))
 
 
-def process(instructions, inputs: Optional[List[int]] = None):
-    inputs = inputs or []
+# ======================================================================================================================
+
+
+def process(instructions, init_input: int):
+    """process as a generator so it keeps amps' states"""
+    inputs = input_stream(init_input)
     pc = 0
     while pc < len(instructions) and instructions[pc] != 99:
         opcode = Opcode.from_code(instructions[pc])
-        fi = opcode.fi
         pc += 1
         args = opcode.get_args(instructions, pc)
+        fi = opcode.fi
         inc_pc = True
         if opcode.code == 3:
-            cur, *inputs = inputs
-            fi.func(instructions, *args, cur)
+            fi.func(instructions, *args, next(inputs))
         elif opcode.code in {5, 6}:
             pc = fi.func(instructions, pc, *args)
             inc_pc = False
         else:
             fi.func(instructions, *args)
+            if opcode.code == 4:
+                yield True
+
         pc += inc_pc * fi.arity
-    return instructions
+    yield False
 
 
-def aoc5(inp):
-    instructions = parse_file('05').copy()
-    process(instructions, [inp])
+def feedback(amps, instructions, inputs):
+    output_register.value = 0
+    amp_map = {}
+    inputs = iter(inputs)
+    endless_amps = (a for amps in repeat(amps) for a in amps)
+    for a in endless_amps:
+        try:
+            proc = amp_map[a]
+        except KeyError:
+            proc = amp_map[a] = process(instructions.copy(), next(inputs))
+        if not next(proc) and a == 'E':
+            break
+    yield output_register.value
+
+
+def input_stream(i):
+    yield i
+    while True:
+        yield output_register.value
+
+
+def process_perm(instructions, inputs: List[int]):
+    return next(feedback("ABCDE", instructions, inputs))
+
+
+def aoc7(filename, input_str):
+    instructions = parse_file(filename)
+    return max(process_perm(instructions, perm) for perm in permutations(map(int, input_str)))
 
 
 def __main():
-    aoc5(1)
-    aoc5(5)
+    print(aoc7('07', '01234'))
+    print(aoc7('07', '56789'))
 
 
 if __name__ == '__main__':
