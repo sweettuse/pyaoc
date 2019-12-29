@@ -9,6 +9,8 @@ import utils as U
 
 __author__ = 'acushner'
 
+relative_base = U.Atom(0)
+
 
 class FuncInfo(NamedTuple):
     meta: str
@@ -34,9 +36,20 @@ class Opcode(NamedTuple):
 
         return cls(int_code, tuple(param_modes), fi)
 
+    @staticmethod
+    def _arg_helper(instructions, idx, param_mode):
+        if param_mode == 0:
+            idx = instructions[idx]
+        elif param_mode == 1:
+            pass
+        elif param_mode == 2:
+            idx += relative_base.value
+        else:
+            raise ValueError(f'invalid param mode! {param_mode}')
+        return instructions[idx]
+
     def get_args(self, instructions, start_idx):
-        gi = instructions.__getitem__
-        return [gi(idx) if pm else gi(gi(idx)) for (idx, pm) in zip(count(start_idx), self.param_modes)]
+        return [self._arg_helper(instructions, idx, pm) for (idx, pm) in zip(count(start_idx), self.param_modes)]
 
 
 def oc_run_and_write(f, instructions: List[int], *args):
@@ -48,16 +61,21 @@ def oc_input(instructions, out_idx, inputs):
     instructions[out_idx] = inputs
 
 
-def oc_output(instructions, idx):
+def oc_output(_, idx):
     print('out', idx)
 
 
-def oc_jump(f, instructions, pc, test, out):
+def oc_jump(f, _, pc, test, out):
     return out if f(test) else pc + 2
 
 
 def oc_comp(f):
     return lambda *args: int(f(*args))
+
+
+def oc_base(_, arg):
+    relative_base.value += arg
+    # print(f'rb: {relative_base.value}')
 
 
 opcodes: Dict[int, FuncInfo] = {
@@ -69,6 +87,7 @@ opcodes: Dict[int, FuncInfo] = {
     6: FuncInfo('jump-if-false', partial(oc_jump, lambda v: not v), 2, False),
     7: FuncInfo('less than', partial(oc_run_and_write, oc_comp(op.lt)), 3),
     8: FuncInfo('equals', partial(oc_run_and_write, oc_comp(op.eq)), 3),
+    9: FuncInfo('relative-base', oc_base, 1)
 }
 
 
@@ -82,6 +101,8 @@ def parse_file(name):
 
 
 def process(instructions, inputs: Optional[List[int]] = None):
+    instructions = _extend_instructions(instructions)
+    relative_base.value = 0
     inputs = inputs or []
     pc = 0
     while pc < len(instructions) and instructions[pc] != 99:
@@ -90,6 +111,7 @@ def process(instructions, inputs: Optional[List[int]] = None):
         pc += 1
         args = opcode.get_args(instructions, pc)
         inc_pc = True
+        # print(opcode)
         if opcode.code == 3:
             cur, *inputs = inputs
             fi.func(instructions, *args, cur)
@@ -102,14 +124,22 @@ def process(instructions, inputs: Optional[List[int]] = None):
     return instructions
 
 
-def aoc5(inp):
-    instructions = parse_file('05').copy()
+def _extend_instructions(instructions):
+    insts = instructions.copy()
+    insts.extend(200 * [0])
+    return insts
+
+
+def aoc9(inp):
+    instructions = parse_file('09')
     process(instructions, [inp])
 
 
 def __main():
-    aoc5(1)
-    aoc5(5)
+    test_data = parse_data('109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99')
+    test_data = parse_data('1102,34915192,34915192,7,4,7,99,0')
+    # print(process(test_data))
+    aoc9(1)
 
 
 if __name__ == '__main__':

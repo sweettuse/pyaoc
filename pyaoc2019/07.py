@@ -10,6 +10,7 @@ import utils as U
 __author__ = 'acushner'
 
 
+
 class FuncInfo(NamedTuple):
     meta: str
     func: Callable
@@ -48,20 +49,7 @@ def oc_input(instructions, out_idx, input):
     instructions[out_idx] = input
 
 
-class Atom:
-    def __init__(self):
-        self.value = None
-
-    @property
-    def value(self):
-        return self._val
-
-    @value.setter
-    def value(self, val):
-        self._val = val
-
-
-output_register = Atom()
+output_register = U.Atom()
 
 
 def oc_output(_, value):
