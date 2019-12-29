@@ -3,6 +3,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from itertools import combinations
 from typing import Union, NamedTuple, Dict
+from operator import add, sub
 
 import numpy as np
 
@@ -23,51 +24,35 @@ class Coord(NamedTuple):
         return cls(d['x'], d['y'], d['z'])
 
     def __add__(self, other):
-        return type(self)(self.x + other.x, self.y + other.y, self.z + other.z)
+        return self._add_sub(other, add)
+
+    def __sub__(self, other):
+        return self._add_sub(other, sub)
+
+    def _add_sub(self, other, oper):
+        return type(self)(*map(oper, self, other))
 
     @property
     def value(self):
         return sum(map(abs, self))
 
 
-@dataclass
-class MutableCoord:
-    x: int = 0
-    y: int = 0
-    z: int = 0
-
-    def __iadd__(self, other):
-        self.x += other.x
-        self.y += other.y
-        self.z += other.z
-        return self
-
-    def __isub__(self, other):
-        self.x -= other.x
-        self.y -= other.y
-        self.z -= other.z
-        return self
-
-    @property
-    def value(self):
-        return sum(map(abs, (self.x, self.y, self.z)))
+def parse_file(name: Union[str, int] = 12):
+    return {Coord.from_dict(eval(v.replace('<', 'dict(').replace('>', ')'))): Coord() for v in U.read_file(name)}
 
 
 def _get_ind_offset_val(v1, v2):
+    """for each pair of dimension vals (e.g., x dim, y dim, z dim), return what the offset should be"""
     if v1 == v2:
         return 0
     return 1 if v1 < v2 else -1
 
 
-def get_offset(c1: Coord, c2: Coord):
+def get_offset(c1: Coord, c2: Coord) -> Coord:
     return Coord(*map(_get_ind_offset_val, c1, c2))
 
 
-def parse_file(name: Union[str, int] = 12):
-    return {Coord.from_dict(eval(v.replace('<', 'dict(').replace('>', ')'))): MutableCoord() for v in U.read_file(name)}
-
-
-def _update_velocity(data: Dict[Coord, MutableCoord]):
+def _update_velocity(data: Dict[Coord, Coord]):
     """side effects"""
     for k1, k2 in combinations(data.keys(), 2):
         o = get_offset(k1, k2)
@@ -75,7 +60,7 @@ def _update_velocity(data: Dict[Coord, MutableCoord]):
         data[k2] -= o
 
 
-def update(data: Dict[Coord, MutableCoord]):
+def update(data: Dict[Coord, Coord]):
     _update_velocity(data)
     return {k + v: v for k, v in data.items()}
 

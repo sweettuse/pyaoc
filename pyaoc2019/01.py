@@ -18,10 +18,6 @@ def aoc(f):
     return sum(f(m) for m in map(int, data))
 
 
-def aoc_2():
-    pass
-
-
 def __main():
     print(aoc(calc_fuel))
     print(aoc(calc_fuel2))

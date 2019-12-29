@@ -31,22 +31,22 @@ class Opcode(NamedTuple):
 
         fi = opcodes[int_code]
         param_modes = [v for (v, _) in zip(map(int, reversed(str_code[:3])), range(fi.arity))]
-        if fi.final_always_immediate:
+        if fi.final_always_immediate and param_modes[-1] != 2:
             param_modes[-1] = 1
 
         return cls(int_code, tuple(param_modes), fi)
 
-    @staticmethod
-    def _arg_helper(instructions, idx, param_mode):
+    def _arg_helper(self, instructions, idx, param_mode):
         if param_mode == 0:
             idx = instructions[idx]
         elif param_mode == 1:
             pass
         elif param_mode == 2:
-            idx += relative_base.value
+            idx = instructions[idx] + relative_base.value
         else:
             raise ValueError(f'invalid param mode! {param_mode}')
-        return instructions[idx]
+        return idx if self.code in {3} else instructions[idx]
+        # return instructions[idx]
 
     def get_args(self, instructions, start_idx):
         return [self._arg_helper(instructions, idx, pm) for (idx, pm) in zip(count(start_idx), self.param_modes)]
@@ -81,13 +81,13 @@ def oc_base(_, arg):
 opcodes: Dict[int, FuncInfo] = {
     1: FuncInfo('add', partial(oc_run_and_write, op.add), 3),
     2: FuncInfo('mul', partial(oc_run_and_write, op.mul), 3),
-    3: FuncInfo('input', oc_input, 1),
+    3: FuncInfo('input', oc_input, 1, False),
     4: FuncInfo('output', oc_output, 1, False),
     5: FuncInfo('jump-if-true', partial(oc_jump, bool), 2, False),
     6: FuncInfo('jump-if-false', partial(oc_jump, lambda v: not v), 2, False),
     7: FuncInfo('less than', partial(oc_run_and_write, oc_comp(op.lt)), 3),
     8: FuncInfo('equals', partial(oc_run_and_write, oc_comp(op.eq)), 3),
-    9: FuncInfo('relative-base', oc_base, 1)
+    9: FuncInfo('relative-base', oc_base, 1, False)
 }
 
 
@@ -126,7 +126,7 @@ def process(instructions, inputs: Optional[List[int]] = None):
 
 def _extend_instructions(instructions):
     insts = instructions.copy()
-    insts.extend(200 * [0])
+    insts.extend(1500 * [0])
     return insts
 
 
@@ -137,9 +137,15 @@ def aoc9(inp):
 
 def __main():
     test_data = parse_data('109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99')
-    test_data = parse_data('1102,34915192,34915192,7,4,7,99,0')
     # print(process(test_data))
-    aoc9(1)
+    # test_data = parse_data('1102,34915192,34915192,7,4,7,99,0')
+    # test_data = parse_file(5)
+    test_data = parse_file(9)
+    print(sorted({i for i in test_data if str(i).startswith('20')}))
+    # print(test_data)
+    # print(process(test_data))
+    print(aoc9(1))
+    # aoc9(1)
 
 
 if __name__ == '__main__':
