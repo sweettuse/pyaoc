@@ -5,7 +5,7 @@ from operator import itemgetter
 
 import uvloop
 
-import utils as U
+import pyaoc2019.utils as U
 
 uvloop.install()
 

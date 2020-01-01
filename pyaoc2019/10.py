@@ -9,7 +9,7 @@ from typing import NamedTuple
 
 from cytoolz import first, memoize
 
-import utils as U
+import pyaoc2019.utils as U
 
 test_input = '''.#..#
 .....

@@ -4,7 +4,7 @@ import operator as op
 
 from cytoolz import memoize
 
-import utils as U
+import pyaoc2019.utils as U
 from more_itertools import first
 
 __author__ = 'acushner'

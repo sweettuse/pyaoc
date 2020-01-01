@@ -7,7 +7,7 @@ from operator import add, sub
 
 import numpy as np
 
-import utils as U
+import pyaoc2019.utils as U
 
 __author__ = 'acushner'
 

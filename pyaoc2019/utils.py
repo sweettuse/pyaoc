@@ -48,3 +48,16 @@ class Atom:
     @value.setter
     def value(self, val):
         self._val = val
+
+    def __str__(self):
+        return f'Atom({self._val})'
+
+    __repr__ = __str__
+
+
+class classproperty:
+    def __init__(self, f):
+        self.f = f
+
+    def __get__(self, instance, cls):
+        return self.f(cls)

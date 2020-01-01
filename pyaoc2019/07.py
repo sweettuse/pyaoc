@@ -5,10 +5,9 @@ from typing import NamedTuple, Callable, List, Dict, Tuple
 
 from cytoolz import memoize, first
 
-import utils as U
+import pyaoc2019.utils as U
 
 __author__ = 'acushner'
-
 
 
 class FuncInfo(NamedTuple):
@@ -74,15 +73,6 @@ opcodes: Dict[int, FuncInfo] = {
     7: FuncInfo('less than', partial(oc_run_and_write, oc_comp(op.lt)), 3),
     8: FuncInfo('equals', partial(oc_run_and_write, oc_comp(op.eq)), 3),
 }
-
-
-def parse_data(data: str):
-    return list(map(int, data.split(',')))
-
-
-@memoize
-def parse_file(name):
-    return parse_data(first(U.read_file(name)))
 
 
 # ======================================================================================================================
