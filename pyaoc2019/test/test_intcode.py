@@ -22,8 +22,8 @@ class Test:
         assert aoc2_b(19690720) == 5335
 
     def test5a(self):
-        assert last(process(parse_data('1101,100,-1,4,0'))) == 99
-        assert last(process(parse_data('1002,4,3,4,33'))) == 99
+        assert process(parse_data('1101,100,-1,4,0'))[4] == 99
+        assert process(parse_data('1002,4,3,4,33'))[4] == 99
         assert process(parse_file(5, [1])).output_register == 15259545
 
     def test5b(self):
@@ -40,8 +40,25 @@ class Test:
         assert process(parse_data(data, [4928])).output_register == 1001
         assert process(parse_file(5, [5])).output_register == 7616021
 
+    def test7(self):
+        from pyaoc2019.aoc07 import feedback, get_best
+        assert feedback('3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0', [4, 3, 2, 1, 0]) == 43210
+        assert feedback('3,23,3,24,1002,24,10,24,1002,23,-1,23,101,5,23,23,1,24,23,23,4,23,99,0,0',
+                        reversed([4, 3, 2, 1, 0])) == 54321
+        assert get_best(range(5)) == 19650
+        assert get_best(range(5, 10)) == 35961106
 
+    def test9(self):
+        assert process(parse_file(9, [1])).output_register == 2738720997
+        assert process(parse_file(9, [2])).output_register == 50894
 
+    def test11(self):
+        from pyaoc2019.aoc11 import aoc11_a
+        assert aoc11_a() == 2054
+
+    def test13(self):
+        from pyaoc2019.aoc13 import aoc13_a
+        assert aoc13_a() == 452
 
 
 def __main():

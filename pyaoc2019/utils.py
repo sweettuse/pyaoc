@@ -57,7 +57,17 @@ class Atom:
 
 class classproperty:
     def __init__(self, f):
-        self.f = f
+        self._get = f
+        self._set = None
 
     def __get__(self, instance, cls):
-        return self.f(cls)
+        return self._get(cls)
+
+    def setter(self, f):
+        self._set = f
+        return self
+
+    def __set__(self, instance, value):
+        if not self._set:
+            raise AttributeError(f"can't set attribute {self._get.__name__}")
+        self._set(type(instance), value)

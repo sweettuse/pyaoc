@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import wraps, reduce
-from itertools import count
+from itertools import count, chain
 from operator import add, mul, lt, eq
 from typing import NamedTuple, Callable, Tuple, List, Dict, Optional, Union, Iterable
 
@@ -17,7 +17,7 @@ debug = False
 
 
 def parse_data(data: str, inputs=None):
-    res = Instructions(map(int, data.split(',')), inputs=inputs)
+    res = Instructions(chain(map(int, data.split(',')), 2000 * [0]), inputs=inputs)
     if debug:
         print(res)
     return res
@@ -31,10 +31,11 @@ def parse_file(name, inputs=None):
 # ======================================================================================================================
 
 class Instructions(List[int]):
+    _output_register = None
+
     def __init__(self, *args, inputs: Optional[List[int]] = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.pc = 0
-        self._output_register = None
         self.relative_base = 0
         if debug:
             print(inputs)
@@ -47,7 +48,7 @@ class Instructions(List[int]):
     @output_register.setter
     def output_register(self, val):
         print(f'OUT: {val}')
-        self._output_register = val
+        Instructions._output_register = val
 
     def read(self, *vals) -> Union[int, Iterable[int]]:
         res = (self[v] for v in vals)
@@ -92,7 +93,6 @@ class Opcode(ABC):
     code: int
     addresses: Tuple[int]
     instructions: Instructions
-    idx: int
     fi: FuncInfo
 
     @classmethod
@@ -108,21 +108,25 @@ class Opcode(ABC):
         addresses = tuple(_get_idx(m, v, instructions) for (m, v, _) in
                           zip(map(int, reversed(str_code[:3])), count(idx + 1), range(fi.arity)))
 
-        return cls(int_code, addresses, instructions, idx, fi)
+        return cls(int_code, addresses, instructions, fi)
+
+    def standard_adjust_pc(self):
+        self.instructions.pc += self.fi.arity + 1
 
 
-def adjust_pc(func):
+# ======================================================================================================================
+# INSTRUCTIONS
+# ======================================================================================================================
+
+def _adjust_pc(func):
     @wraps(func)
     def wrapper(self: InstructionBase, *args, **kwargs):
         try:
             return func(self, *args, **kwargs)
         finally:
-            self.standard_adjust_pc()
+            self.opcode.standard_adjust_pc()
 
     return wrapper
-
-
-# ======================================================================================================================
 
 
 class InstructionBase(ABC):
@@ -130,15 +134,12 @@ class InstructionBase(ABC):
         self.opcode = opcode
 
     @abstractmethod
-    def run(self, *args, **kwargs):
-        """each subclass could have different args"""
+    def run(self):
+        """logic of each instruction should be implemented here in subclasses"""
 
     @property
     def insts(self):
         return self.opcode.instructions
-
-    def standard_adjust_pc(self):
-        self.opcode.instructions.pc += self.opcode.fi.arity + 1
 
 
 class RunAndWrite(InstructionBase):
@@ -146,20 +147,20 @@ class RunAndWrite(InstructionBase):
         super().__init__(opcode)
         self.op = op
 
-    @adjust_pc
+    @_adjust_pc
     def run(self):
         *args, out_idx = self.opcode.addresses
         self.insts.write(out_idx, reduce(self.op, self.insts.read(*args)))
 
 
 class ProcInput(InstructionBase):
-    @adjust_pc
+    @_adjust_pc
     def run(self):
         self.insts.write(*self.opcode.addresses, next(self.insts.inputs))
 
 
 class ProcOutput(InstructionBase):
-    @adjust_pc
+    @_adjust_pc
     def run(self):
         self.insts.output_register = self.insts.read(*self.opcode.addresses)
 
@@ -174,7 +175,7 @@ class Jump(InstructionBase):
         if self.predicate(test):
             self.insts.pc = new_idx
         else:
-            self.standard_adjust_pc()
+            self.opcode.standard_adjust_pc()
 
 
 class Comp(InstructionBase):
@@ -182,10 +183,16 @@ class Comp(InstructionBase):
         super().__init__(opcode)
         self.comp = comp
 
-    @adjust_pc
+    @_adjust_pc
     def run(self):
         *idxs, out = self.opcode.addresses
         self.insts.write(out, int(self.comp(*self.insts.read(*idxs))))
+
+
+class RelativeBase(InstructionBase):
+    @_adjust_pc
+    def run(self):
+        self.insts.relative_base += self.insts.read(*self.opcode.addresses)
 
 
 opcodes: Dict[int, FuncInfo] = {
@@ -197,15 +204,16 @@ opcodes: Dict[int, FuncInfo] = {
     6: FuncInfo('jump-if-false', lambda oc: Jump(oc, lambda v: not v), 2),
     7: FuncInfo('less-than', lambda oc: Comp(oc, lt), 3),
     8: FuncInfo('equals', lambda oc: Comp(oc, eq), 3),
+    9: FuncInfo('relative-base', RelativeBase, 1),
 }
-
-
-# ======================================================================================================================
 
 
 def parse_instruction(instructions: Instructions) -> InstructionBase:
     oc = Opcode.from_instructions(instructions)
     return oc.fi.func(oc)
+
+
+# ======================================================================================================================
 
 
 def process(instructions: Instructions):
@@ -216,29 +224,8 @@ def process(instructions: Instructions):
     return instructions
 
 
-def aoc2(p1, p2):
-    data = parse_file('02')
-    data[1:3] = p1, p2
-    return first(process(data))
-
-
-def aoc2_b(target):
-    return first(p1 * 100 + p2 for p1 in range(100) for p2 in range(100) if aoc2(p1, p2) == target)
-
-
-def aoc5(inp):
-    return process(parse_file(5, [inp]))
-
-
 def __main():
-    # test_data = parse_data('1,9,10,3,2,3,11,0,99,30,40,50')
-    # print(process(test_data))
-    # print(aoc2(53, 35))
-    # print(aoc2(12, 2))
-    # print(process(parse_data('1002,4,3,4,33')))
-    # print(process(parse_data('1101,100,-1,4,0')))
-    # aoc5(1)
-    process(parse_data('3,9,8,9,10,9,4,9,99,-1,8', [2]))
+    pass
 
 
 if __name__ == '__main__':
