@@ -21,6 +21,10 @@ class Direction(Enum):
     left = Coord(0, -1)
 
     def rotated(self, val):
+        """
+        0: rotate 90 deg counter-clockwise"
+        1: rotate 90 deg clockwise"
+        """
         dirs = list(Direction)
         val = 2 * val - 1
         new_idx = (dirs.index(self) + val) % len(dirs)
@@ -39,7 +43,7 @@ class HullRobot:
 
     def cur_color(self):
         while True:
-            yield bool(self._cur_pos in self.whites)
+            yield self._cur_pos in self.whites
 
     def _set_color(self, val):
         if val:

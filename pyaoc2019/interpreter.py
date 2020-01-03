@@ -7,7 +7,7 @@ from itertools import count, chain
 from operator import add, mul, lt, eq
 from typing import NamedTuple, Callable, Tuple, List, Dict, Optional, Union, Iterable
 
-from cytoolz import first
+from cytoolz import first, comp
 
 import pyaoc2019.utils as U
 
@@ -15,6 +15,10 @@ __author__ = 'acushner'
 
 debug = False
 
+
+# ======================================================================================================================
+# HELPER FUNCTIONS
+# ======================================================================================================================
 
 def parse_data(data: str, inputs=None):
     res = Instructions(chain(map(int, data.split(',')), 2000 * [0]), inputs=inputs)
@@ -28,6 +32,8 @@ def parse_file(name, inputs=None):
     return parse_data(first(data), inputs)
 
 
+# ======================================================================================================================
+# SUPPORTING CLASSES
 # ======================================================================================================================
 
 class Instructions(List[int]):
@@ -80,7 +86,7 @@ def _get_idx(mode, idx, instructions: Instructions) -> int:
         # positional mode - value at idx represents ultimate idx
         return instructions[idx]
     if mode == 1:
-        # immediate mode - value at idx represents is the value to use
+        # immediate mode - value at idx represents the value to use
         return idx
     if mode == 2:
         # relative mode - idx is offset by relative_base
@@ -115,7 +121,7 @@ class Opcode(ABC):
 
 
 # ======================================================================================================================
-# INSTRUCTIONS
+# INDIVIDUAL INSTRUCTIONS
 # ======================================================================================================================
 
 def _adjust_pc(func):
@@ -143,29 +149,37 @@ class InstructionBase(ABC):
 
 
 class RunAndWrite(InstructionBase):
-    def __init__(self, opcode: Opcode, op: Callable):
+    """reduce an operator on n-args and write out the result as an integer"""
+
+    def __init__(self, opcode: Opcode, op: Callable[[int, ...], int]):
         super().__init__(opcode)
         self.op = op
 
     @_adjust_pc
     def run(self):
-        *args, out_idx = self.opcode.addresses
-        self.insts.write(out_idx, reduce(self.op, self.insts.read(*args)))
+        *idxs, out = self.opcode.addresses
+        self.insts.write(out, reduce(self.op, self.insts.read(*idxs)))
 
 
 class ProcInput(InstructionBase):
+    """read in input from input stream and write out"""
+
     @_adjust_pc
     def run(self):
         self.insts.write(*self.opcode.addresses, next(self.insts.inputs))
 
 
 class ProcOutput(InstructionBase):
+    """write value to output_register"""
+
     @_adjust_pc
     def run(self):
         self.insts.output_register = self.insts.read(*self.opcode.addresses)
 
 
 class Jump(InstructionBase):
+    """change pc depending on predicate"""
+
     def __init__(self, opcode: Opcode, predicate: Callable[[int], bool]):
         super().__init__(opcode)
         self.predicate = predicate
@@ -178,18 +192,9 @@ class Jump(InstructionBase):
             self.opcode.standard_adjust_pc()
 
 
-class Comp(InstructionBase):
-    def __init__(self, opcode: Opcode, comp: Callable[[int, int], bool]):
-        super().__init__(opcode)
-        self.comp = comp
-
-    @_adjust_pc
-    def run(self):
-        *idxs, out = self.opcode.addresses
-        self.insts.write(out, int(self.comp(*self.insts.read(*idxs))))
-
-
 class RelativeBase(InstructionBase):
+    """adjust the relative base"""
+
     @_adjust_pc
     def run(self):
         self.insts.relative_base += self.insts.read(*self.opcode.addresses)
@@ -202,8 +207,8 @@ opcodes: Dict[int, FuncInfo] = {
     4: FuncInfo('write-out', ProcOutput, 1),
     5: FuncInfo('jump-if-true', lambda oc: Jump(oc, bool), 2),
     6: FuncInfo('jump-if-false', lambda oc: Jump(oc, lambda v: not v), 2),
-    7: FuncInfo('less-than', lambda oc: Comp(oc, lt), 3),
-    8: FuncInfo('equals', lambda oc: Comp(oc, eq), 3),
+    7: FuncInfo('less-than', lambda oc: RunAndWrite(oc, comp(int, lt)), 3),
+    8: FuncInfo('equals', lambda oc: RunAndWrite(oc, comp(int, eq)), 3),
     9: FuncInfo('relative-base', RelativeBase, 1),
 }
 

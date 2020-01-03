@@ -93,7 +93,7 @@ def aoc12_b():
             if dimension_vals in cur:
                 to_rm.add(v)
             else:
-                res[v].add(dimension_vals)
+                cur.add(dimension_vals)
 
         vals -= to_rm
         if not vals:
