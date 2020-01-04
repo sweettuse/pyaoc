@@ -7,7 +7,7 @@ from itertools import count, chain
 from operator import add, mul, lt, eq
 from typing import NamedTuple, Callable, Tuple, List, Dict, Optional, Union, Iterable
 
-from cytoolz import first, comp
+from cytoolz import first, comp, take
 
 import pyaoc2019.utils as U
 
@@ -39,7 +39,7 @@ def parse_file(name, inputs=None):
 class Instructions(List[int]):
     _output_register = None
 
-    def __init__(self, *args, inputs: Optional[List[int]] = None, **kwargs):
+    def __init__(self, *args, inputs: Optional[Iterable[int]] = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.pc = 0
         self.relative_base = 0
@@ -53,7 +53,7 @@ class Instructions(List[int]):
 
     @output_register.setter
     def output_register(self, val):
-        print(f'OUT: {val}')
+        # print(f'OUT: {val}')
         Instructions._output_register = val
 
     def read(self, *vals) -> Union[int, Iterable[int]]:
@@ -73,6 +73,11 @@ class Instructions(List[int]):
     def cur(self):
         return self[self.pc]
 
+    def execute(self):
+        while self.valid:
+            oc = Opcode.from_instructions(self)
+            yield oc.fi.func(oc)
+
 
 class FuncInfo(NamedTuple):
     meta: str
@@ -80,18 +85,18 @@ class FuncInfo(NamedTuple):
     arity: int
 
 
-def _get_idx(mode, idx, instructions: Instructions) -> int:
-    """return idx to be processed"""
-    if mode == 0:
+def _get_idx(param_mode, idx, instructions: Instructions) -> int:
+    """return idx based on param mode"""
+    if param_mode == 0:
         # positional mode - value at idx represents ultimate idx
         return instructions[idx]
-    if mode == 1:
+    if param_mode == 1:
         # immediate mode - value at idx represents the value to use
         return idx
-    if mode == 2:
+    if param_mode == 2:
         # relative mode - idx is offset by relative_base
         return instructions[idx] + instructions.relative_base
-    raise ValueError(f'invalid param mode: {mode}')
+    raise ValueError(f'invalid param mode: {param_mode}')
 
 
 @dataclass
@@ -111,8 +116,8 @@ class Opcode(ABC):
             print('idx, code:', idx, code)
         fi = opcodes[int_code]
 
-        addresses = tuple(_get_idx(m, v, instructions) for (m, v, _) in
-                          zip(map(int, reversed(str_code[:3])), count(idx + 1), range(fi.arity)))
+        addresses = tuple(_get_idx(m, v, instructions) for (m, v) in
+                          take(fi.arity, zip(map(int, reversed(str_code[:-2])), count(idx + 1))))
 
         return cls(int_code, addresses, instructions, fi)
 
@@ -136,6 +141,8 @@ def _adjust_pc(func):
 
 
 class InstructionBase(ABC):
+    """base class for an individual instruction"""
+
     def __init__(self, opcode: Opcode):
         self.opcode = opcode
 
@@ -145,6 +152,7 @@ class InstructionBase(ABC):
 
     @property
     def insts(self):
+        """convenience property"""
         return self.opcode.instructions
 
 
@@ -213,19 +221,19 @@ opcodes: Dict[int, FuncInfo] = {
 }
 
 
-def parse_instruction(instructions: Instructions) -> InstructionBase:
-    oc = Opcode.from_instructions(instructions)
-    return oc.fi.func(oc)
-
-
 # ======================================================================================================================
 
 
 def process(instructions: Instructions):
-    while instructions.valid:
-        inst = parse_instruction(instructions)
+    for inst in instructions.execute():
         inst.run()
+        if inst.opcode.code == 4:
+            yield instructions.output_register
 
+
+def process_no_yield(instructions: Instructions):
+    for _ in process(instructions):
+        pass
     return instructions
 
 

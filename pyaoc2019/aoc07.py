@@ -1,18 +1,15 @@
 from itertools import repeat, permutations
 
-from pyaoc2019.interpreter import Instructions, parse_instruction, parse_file, parse_data
+from pyaoc2019.interpreter import Instructions, parse_file, parse_data, process
 
 __author__ = 'acushner'
 
+DONE = object()
+
 
 def process_amps(instructions: Instructions):
-    while instructions.valid:
-        inst = parse_instruction(instructions)
-        inst.run()
-        if inst.opcode.code == 4:
-            yield True
-
-    yield instructions
+    yield from process(instructions)
+    yield DONE
 
 
 def _input_stream(inp):
@@ -34,7 +31,8 @@ def feedback(fn_or_data, inputs, as_data=True):
             proc = amp_map[a]
         except KeyError:
             proc = amp_map[a] = process_amps(f(fn_or_data, _input_stream(next(inputs))))
-        if next(proc) is not True and a == 'E':
+
+        if next(proc) is DONE and a == 'E':
             break
     print()
     return Instructions._output_register

@@ -3,7 +3,7 @@ from typing import Dict, NamedTuple
 
 from cytoolz import take
 
-from pyaoc2019.interpreter import Instructions, parse_instruction, parse_file
+from pyaoc2019.interpreter import Instructions, parse_file, process
 
 __author__ = 'acushner'
 
@@ -38,14 +38,6 @@ class Arcade:
 
     def _update_board(self, x, y, tile_id):
         self.board[Coord(x, y)] = tile_map[tile_id]
-
-
-def process(instructions: Instructions):
-    while instructions.valid:
-        inst = parse_instruction(instructions)
-        inst.run()
-        if inst.opcode.code == 4:
-            yield instructions.output_register
 
 
 def aoc13_a():

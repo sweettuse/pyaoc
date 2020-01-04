@@ -3,7 +3,7 @@ from typing import NamedTuple, Set
 
 __author__ = 'acushner'
 
-from pyaoc2019.interpreter import Instructions, parse_instruction, parse_file
+from pyaoc2019.interpreter import Instructions, parse_file, process
 
 
 class Coord(NamedTuple):
@@ -83,14 +83,6 @@ class HullRobot:
             print(''.join(l))
 
 
-def process(instructions: Instructions):
-    while instructions.valid:
-        inst = parse_instruction(instructions)
-        inst.run()
-        if inst.opcode.code == 4:
-            yield instructions.output_register
-
-
 def aoc11_a():
     robot = HullRobot()
     instructions = parse_file(11, robot.cur_color())
@@ -105,7 +97,8 @@ def aoc11_b():
 
 
 def __main():
-    aoc11_b()
+    print(aoc11_a())
+    # aoc11_b()
 
 
 if __name__ == '__main__':

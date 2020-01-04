@@ -30,10 +30,6 @@ def parse_file(name: Union[int, str] = 14):
     return res
 
 
-async def process(data, target='FUEL'):
-    pass
-
-
 def __main():
     print(Compound.from_str('7 A'))
     print(parse_file('14.test'))
