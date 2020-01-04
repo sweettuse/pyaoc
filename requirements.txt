@@ -1,0 +1,7 @@
+cytoolz
+more-itertools
+numpy
+pytest
+sty
+toolz
+uvloop

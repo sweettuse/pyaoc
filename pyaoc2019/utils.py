@@ -1,4 +1,5 @@
 import time
+from collections import deque
 from contextlib import contextmanager
 from itertools import islice
 from pathlib import Path
@@ -71,3 +72,7 @@ class classproperty:
         if not self._set:
             raise AttributeError(f"can't set attribute {self._get.__name__}")
         self._set(type(instance), value)
+
+
+def exhaust(iterable):
+    deque(iterable, maxlen=0)

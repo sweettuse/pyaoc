@@ -40,13 +40,14 @@ class Program(List[int]):
     """represent the working program, with instructions and registers, etc"""
     _output_register = None
 
-    def __init__(self, *args, inputs: Optional[Iterable[int]] = None, **kwargs):
+    def __init__(self, *args, inputs: Optional[Iterable[int]] = None, suppress_output=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.pc = 0
         self.relative_base = 0
         if debug:
             print(inputs)
         self.inputs = iter(inputs or [])
+        self.suppress_output = suppress_output
 
     @property
     def output_register(self):
@@ -54,7 +55,8 @@ class Program(List[int]):
 
     @output_register.setter
     def output_register(self, val):
-        # print(f'OUT: {val}')
+        if not self.suppress_output:
+            print(f'OUT: {val}')
         Program._output_register = val
 
     def read(self, *vals) -> Union[int, Iterable[int]]:
@@ -77,12 +79,13 @@ class Program(List[int]):
     def execute(self):
         while self.valid:
             oc = Opcode.from_program(self)
-            yield oc.fi.func(oc)
+            yield oc.fi.inst(oc)
 
 
-class FuncInfo(NamedTuple):
+class InstructionInfo(NamedTuple):
+    """store information about a single instruction type"""
     meta: str
-    func: Callable[[Opcode], InstructionBase]
+    inst: Callable[[Opcode], InstructionBase]
     arity: int
 
 
@@ -105,7 +108,7 @@ class Opcode(ABC):
     code: int
     addresses: Tuple[int]
     program: Program
-    fi: FuncInfo
+    fi: InstructionInfo
 
     @classmethod
     def from_program(cls, program: Program):
@@ -209,16 +212,16 @@ class RelativeBase(InstructionBase):
         self.insts.relative_base += self.insts.read(*self.opcode.addresses)
 
 
-opcodes: Dict[int, FuncInfo] = {
-    1: FuncInfo('add', lambda oc: RunAndWrite(oc, add), 3),
-    2: FuncInfo('mul', lambda oc: RunAndWrite(oc, mul), 3),
-    3: FuncInfo('read-in', ProcInput, 1),
-    4: FuncInfo('write-out', ProcOutput, 1),
-    5: FuncInfo('jump-if-true', lambda oc: Jump(oc, bool), 2),
-    6: FuncInfo('jump-if-false', lambda oc: Jump(oc, lambda v: not v), 2),
-    7: FuncInfo('less-than', lambda oc: RunAndWrite(oc, comp(int, lt)), 3),
-    8: FuncInfo('equals', lambda oc: RunAndWrite(oc, comp(int, eq)), 3),
-    9: FuncInfo('relative-base', RelativeBase, 1),
+opcodes: Dict[int, InstructionInfo] = {
+    1: InstructionInfo('add', lambda oc: RunAndWrite(oc, add), 3),
+    2: InstructionInfo('mul', lambda oc: RunAndWrite(oc, mul), 3),
+    3: InstructionInfo('read-in', ProcInput, 1),
+    4: InstructionInfo('write-out', ProcOutput, 1),
+    5: InstructionInfo('jump-if-true', lambda oc: Jump(oc, bool), 2),
+    6: InstructionInfo('jump-if-false', lambda oc: Jump(oc, lambda v: not v), 2),
+    7: InstructionInfo('less-than', lambda oc: RunAndWrite(oc, comp(int, lt)), 3),
+    8: InstructionInfo('equals', lambda oc: RunAndWrite(oc, comp(int, eq)), 3),
+    9: InstructionInfo('relative-base', RelativeBase, 1),
 }
 
 
@@ -233,8 +236,7 @@ def process(program: Program):
 
 
 def process_no_yield(program: Program):
-    for _ in process(program):
-        pass
+    U.exhaust(process(program))
     return program
 
 
