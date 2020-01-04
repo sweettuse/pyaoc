@@ -1,25 +1,25 @@
 from itertools import repeat, permutations
 
-from pyaoc2019.interpreter import Instructions, parse_file, parse_data, process
+from pyaoc2019.interpreter import Program, parse_file, parse_data, process
 
 __author__ = 'acushner'
 
 DONE = object()
 
 
-def process_amps(instructions: Instructions):
-    yield from process(instructions)
+def process_amps(program: Program):
+    yield from process(program)
     yield DONE
 
 
 def _input_stream(inp):
     yield inp
     while True:
-        yield Instructions._output_register
+        yield Program._output_register
 
 
 def feedback(fn_or_data, inputs, as_data=True):
-    Instructions._output_register = 0
+    Program._output_register = 0
     f = parse_data if as_data else parse_file
     amps = 'ABCDE'
     amp_map = {}
@@ -35,7 +35,7 @@ def feedback(fn_or_data, inputs, as_data=True):
         if next(proc) is DONE and a == 'E':
             break
     print()
-    return Instructions._output_register
+    return Program._output_register
 
 
 def get_best(input_range):

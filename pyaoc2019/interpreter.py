@@ -21,7 +21,7 @@ debug = False
 # ======================================================================================================================
 
 def parse_data(data: str, inputs=None):
-    res = Instructions(chain(map(int, data.split(',')), 2000 * [0]), inputs=inputs)
+    res = Program(chain(map(int, data.split(',')), 2000 * [0]), inputs=inputs)
     if debug:
         print(res)
     return res
@@ -36,7 +36,8 @@ def parse_file(name, inputs=None):
 # SUPPORTING CLASSES
 # ======================================================================================================================
 
-class Instructions(List[int]):
+class Program(List[int]):
+    """represent the working program, with instructions and registers, etc"""
     _output_register = None
 
     def __init__(self, *args, inputs: Optional[Iterable[int]] = None, **kwargs):
@@ -54,7 +55,7 @@ class Instructions(List[int]):
     @output_register.setter
     def output_register(self, val):
         # print(f'OUT: {val}')
-        Instructions._output_register = val
+        Program._output_register = val
 
     def read(self, *vals) -> Union[int, Iterable[int]]:
         res = (self[v] for v in vals)
@@ -75,7 +76,7 @@ class Instructions(List[int]):
 
     def execute(self):
         while self.valid:
-            oc = Opcode.from_instructions(self)
+            oc = Opcode.from_program(self)
             yield oc.fi.func(oc)
 
 
@@ -85,17 +86,17 @@ class FuncInfo(NamedTuple):
     arity: int
 
 
-def _get_idx(param_mode, idx, instructions: Instructions) -> int:
+def _get_idx(param_mode, idx, program: Program) -> int:
     """return idx based on param mode"""
     if param_mode == 0:
         # positional mode - value at idx represents ultimate idx
-        return instructions[idx]
+        return program[idx]
     if param_mode == 1:
         # immediate mode - value at idx represents the value to use
         return idx
     if param_mode == 2:
         # relative mode - idx is offset by relative_base
-        return instructions[idx] + instructions.relative_base
+        return program[idx] + program.relative_base
     raise ValueError(f'invalid param mode: {param_mode}')
 
 
@@ -103,30 +104,30 @@ def _get_idx(param_mode, idx, instructions: Instructions) -> int:
 class Opcode(ABC):
     code: int
     addresses: Tuple[int]
-    instructions: Instructions
+    program: Program
     fi: FuncInfo
 
     @classmethod
-    def from_instructions(cls, instructions: Instructions):
-        code = instructions.cur
-        idx = instructions.pc
+    def from_program(cls, program: Program):
+        code = program.cur
+        idx = program.pc
         int_code = code % 100
         str_code = f'{code:05d}'
         if debug:
             print('idx, code:', idx, code)
         fi = opcodes[int_code]
 
-        addresses = tuple(_get_idx(m, v, instructions) for (m, v) in
+        addresses = tuple(_get_idx(m, v, program) for (m, v) in
                           take(fi.arity, zip(map(int, reversed(str_code[:-2])), count(idx + 1))))
 
-        return cls(int_code, addresses, instructions, fi)
+        return cls(int_code, addresses, program, fi)
 
     def standard_adjust_pc(self):
-        self.instructions.pc += self.fi.arity + 1
+        self.program.pc += self.fi.arity + 1
 
 
 # ======================================================================================================================
-# INDIVIDUAL INSTRUCTIONS
+# INDIVIDUAL PROGRAM
 # ======================================================================================================================
 
 def _adjust_pc(func):
@@ -153,7 +154,7 @@ class InstructionBase(ABC):
     @property
     def insts(self):
         """convenience property"""
-        return self.opcode.instructions
+        return self.opcode.program
 
 
 class RunAndWrite(InstructionBase):
@@ -224,17 +225,17 @@ opcodes: Dict[int, FuncInfo] = {
 # ======================================================================================================================
 
 
-def process(instructions: Instructions):
-    for inst in instructions.execute():
+def process(program: Program):
+    for inst in program.execute():
         inst.run()
         if inst.opcode.code == 4:
-            yield instructions.output_register
+            yield program.output_register
 
 
-def process_no_yield(instructions: Instructions):
-    for _ in process(instructions):
+def process_no_yield(program: Program):
+    for _ in process(program):
         pass
-    return instructions
+    return program
 
 
 def __main():

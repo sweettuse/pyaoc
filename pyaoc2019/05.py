@@ -34,25 +34,25 @@ class Opcode(NamedTuple):
 
         return cls(int_code, tuple(param_modes), fi)
 
-    def get_args(self, instructions, start_idx):
-        gi = instructions.__getitem__
+    def get_args(self, program, start_idx):
+        gi = program.__getitem__
         return [gi(idx) if pm else gi(gi(idx)) for (idx, pm) in zip(count(start_idx), self.param_modes)]
 
 
-def oc_run_and_write(f, instructions: List[int], *args):
+def oc_run_and_write(f, program: List[int], *args):
     a, b, out_idx = args
-    instructions[out_idx] = f(a, b)
+    program[out_idx] = f(a, b)
 
 
-def oc_input(instructions, out_idx, inputs):
-    instructions[out_idx] = inputs
+def oc_input(program, out_idx, inputs):
+    program[out_idx] = inputs
 
 
-def oc_output(instructions, idx):
+def oc_output(program, idx):
     print('out', idx)
 
 
-def oc_jump(f, instructions, pc, test, out):
+def oc_jump(f, program, pc, test, out):
     return out if f(test) else pc + 2
 
 
@@ -81,30 +81,30 @@ def parse_file(name):
     return parse_data(first(U.read_file(name)))
 
 
-def process(instructions, inputs: Optional[List[int]] = None):
+def process(program, inputs: Optional[List[int]] = None):
     inputs = inputs or []
     pc = 0
-    while pc < len(instructions) and instructions[pc] != 99:
-        opcode = Opcode.from_code(instructions[pc])
+    while pc < len(program) and program[pc] != 99:
+        opcode = Opcode.from_code(program[pc])
         fi = opcode.fi
         pc += 1
-        args = opcode.get_args(instructions, pc)
+        args = opcode.get_args(program, pc)
         inc_pc = True
         if opcode.code == 3:
             cur, *inputs = inputs
-            fi.func(instructions, *args, cur)
+            fi.func(program, *args, cur)
         elif opcode.code in {5, 6}:
-            pc = fi.func(instructions, pc, *args)
+            pc = fi.func(program, pc, *args)
             inc_pc = False
         else:
-            fi.func(instructions, *args)
+            fi.func(program, *args)
         pc += inc_pc * fi.arity
-    return instructions
+    return program
 
 
 def aoc5(inp):
-    instructions = parse_file('05').copy()
-    process(instructions, [inp])
+    program = parse_file('05').copy()
+    process(program, [inp])
 
 
 def __main():

@@ -6,9 +6,9 @@ __author__ = 'acushner'
 
 
 def aoc2_a(p1, p2):
-    instructions = parse_file(2)
-    instructions[1:3] = p1, p2
-    return first(process_no_yield(instructions))
+    program = parse_file(2)
+    program[1:3] = p1, p2
+    return first(process_no_yield(program))
 
 
 def aoc2_b(target):

@@ -3,7 +3,7 @@ from typing import Dict, NamedTuple
 
 from cytoolz import take
 
-from pyaoc2019.interpreter import Instructions, parse_file, process
+from pyaoc2019.interpreter import Program, parse_file, process
 
 __author__ = 'acushner'
 
@@ -31,8 +31,8 @@ class Arcade:
     def __init__(self):
         self.board: Dict[Coord, Tile] = {}
 
-    def run(self, instructions: Instructions):
-        proc = process(instructions)
+    def run(self, program: Program):
+        proc = process(program)
         for val in proc:
             self._update_board(val, *take(2, proc))
 

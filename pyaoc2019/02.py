@@ -16,9 +16,9 @@ class FuncInfo(NamedTuple):
     arity: int
 
 
-def oc_run_and_write(f, instructions: List[int], *args):
+def oc_run_and_write(f, program: List[int], *args):
     a, b, out_idx = args
-    instructions[out_idx] = f(instructions[a], instructions[b])
+    program[out_idx] = f(program[a], program[b])
 
 
 def parse_opcode(code: int):
@@ -40,15 +40,15 @@ def parse_file(name):
     return parse_data(first(U.read_file(name)))
 
 
-def process(instructions):
+def process(program):
     pc = 0
-    while pc < len(instructions) and instructions[pc] != 99:
-        opcode = parse_opcode(instructions[pc])
+    while pc < len(program) and program[pc] != 99:
+        opcode = parse_opcode(program[pc])
         pc += 1
         fi = opcodes[opcode]
-        fi.func(instructions, *instructions[pc: pc + fi.arity])
+        fi.func(program, *program[pc: pc + fi.arity])
         pc += fi.arity
-    return instructions
+    return program
 
 
 def aoc2(p1, p2):

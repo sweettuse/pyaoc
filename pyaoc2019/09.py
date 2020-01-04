@@ -36,29 +36,29 @@ class Opcode(NamedTuple):
 
         return cls(int_code, tuple(param_modes), fi)
 
-    def _arg_helper(self, instructions, idx, param_mode):
+    def _arg_helper(self, program, idx, param_mode):
         if param_mode == 0:
-            idx = instructions[idx]
+            idx = program[idx]
         elif param_mode == 1:
             pass
         elif param_mode == 2:
-            idx = instructions[idx] + relative_base.value
+            idx = program[idx] + relative_base.value
         else:
             raise ValueError(f'invalid param mode! {param_mode}')
-        return idx if self.code in {3} else instructions[idx]
-        # return instructions[idx]
+        return idx if self.code in {3} else program[idx]
+        # return program[idx]
 
-    def get_args(self, instructions, start_idx):
-        return [self._arg_helper(instructions, idx, pm) for (idx, pm) in zip(count(start_idx), self.param_modes)]
+    def get_args(self, program, start_idx):
+        return [self._arg_helper(program, idx, pm) for (idx, pm) in zip(count(start_idx), self.param_modes)]
 
 
-def oc_run_and_write(f, instructions: List[int], *args):
+def oc_run_and_write(f, program: List[int], *args):
     a, b, out_idx = args
-    instructions[out_idx] = f(a, b)
+    program[out_idx] = f(a, b)
 
 
-def oc_input(instructions, out_idx, inputs):
-    instructions[out_idx] = inputs
+def oc_input(program, out_idx, inputs):
+    program[out_idx] = inputs
 
 
 def oc_output(_, idx):
@@ -100,39 +100,39 @@ def parse_file(name):
     return parse_data(first(U.read_file(name)))
 
 
-def process(instructions, inputs: Optional[List[int]] = None):
-    instructions = _extend_instructions(instructions)
+def process(program, inputs: Optional[List[int]] = None):
+    program = _extend_program(program)
     relative_base.value = 0
     inputs = inputs or []
     pc = 0
-    while pc < len(instructions) and instructions[pc] != 99:
-        opcode = Opcode.from_code(instructions[pc])
+    while pc < len(program) and program[pc] != 99:
+        opcode = Opcode.from_code(program[pc])
         fi = opcode.fi
         pc += 1
-        args = opcode.get_args(instructions, pc)
+        args = opcode.get_args(program, pc)
         inc_pc = True
         # print(opcode)
         if opcode.code == 3:
             cur, *inputs = inputs
-            fi.func(instructions, *args, cur)
+            fi.func(program, *args, cur)
         elif opcode.code in {5, 6}:
-            pc = fi.func(instructions, pc, *args)
+            pc = fi.func(program, pc, *args)
             inc_pc = False
         else:
-            fi.func(instructions, *args)
+            fi.func(program, *args)
         pc += inc_pc * fi.arity
-    return instructions
+    return program
 
 
-def _extend_instructions(instructions):
-    insts = instructions.copy()
+def _extend_program(program):
+    insts = program.copy()
     insts.extend(1500 * [0])
     return insts
 
 
 def aoc9(inp):
-    instructions = parse_file('09')
-    process(instructions, [inp])
+    program = parse_file('09')
+    process(program, [inp])
 
 
 def __main():

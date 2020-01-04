@@ -34,18 +34,18 @@ class Opcode(NamedTuple):
 
         return cls(int_code, tuple(param_modes), fi)
 
-    def get_args(self, instructions, start_idx):
-        gi = instructions.__getitem__
+    def get_args(self, program, start_idx):
+        gi = program.__getitem__
         return [gi(idx) if pm else gi(gi(idx)) for (idx, pm) in zip(count(start_idx), self.param_modes)]
 
 
-def oc_run_and_write(f, instructions: List[int], *args):
+def oc_run_and_write(f, program: List[int], *args):
     a, b, out_idx = args
-    instructions[out_idx] = f(a, b)
+    program[out_idx] = f(a, b)
 
 
-def oc_input(instructions, out_idx, input):
-    instructions[out_idx] = input
+def oc_input(program, out_idx, input):
+    program[out_idx] = input
 
 
 output_register = U.Atom()
@@ -78,23 +78,23 @@ opcodes: Dict[int, FuncInfo] = {
 # ======================================================================================================================
 
 
-def process(instructions, init_input: int):
+def process(program, init_input: int):
     """process as a generator so it keeps amps' states"""
     inputs = input_stream(init_input)
     pc = 0
-    while pc < len(instructions) and instructions[pc] != 99:
-        opcode = Opcode.from_code(instructions[pc])
+    while pc < len(program) and program[pc] != 99:
+        opcode = Opcode.from_code(program[pc])
         pc += 1
-        args = opcode.get_args(instructions, pc)
+        args = opcode.get_args(program, pc)
         fi = opcode.fi
         inc_pc = True
         if opcode.code == 3:
-            fi.func(instructions, *args, next(inputs))
+            fi.func(program, *args, next(inputs))
         elif opcode.code in {5, 6}:
-            pc = fi.func(instructions, pc, *args)
+            pc = fi.func(program, pc, *args)
             inc_pc = False
         else:
-            fi.func(instructions, *args)
+            fi.func(program, *args)
             if opcode.code == 4:
                 yield True
 
@@ -102,7 +102,7 @@ def process(instructions, init_input: int):
     yield False
 
 
-def feedback(amps, instructions, inputs):
+def feedback(amps, program, inputs):
     output_register.value = 0
     amp_map = {}
     inputs = iter(inputs)
@@ -111,7 +111,7 @@ def feedback(amps, instructions, inputs):
         try:
             proc = amp_map[a]
         except KeyError:
-            proc = amp_map[a] = process(instructions.copy(), next(inputs))
+            proc = amp_map[a] = process(program.copy(), next(inputs))
         if not next(proc) and a == 'E':
             break
     yield output_register.value
@@ -123,13 +123,13 @@ def input_stream(i):
         yield output_register.value
 
 
-def process_perm(instructions, inputs: List[int]):
-    return next(feedback("ABCDE", instructions, inputs))
+def process_perm(program, inputs: List[int]):
+    return next(feedback("ABCDE", program, inputs))
 
 
 def aoc7(filename, input_str):
-    instructions = parse_file(filename)
-    return max(process_perm(instructions, perm) for perm in permutations(map(int, input_str)))
+    program = parse_file(filename)
+    return max(process_perm(program, perm) for perm in permutations(map(int, input_str)))
 
 
 def __main():
