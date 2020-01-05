@@ -1,34 +1,9 @@
-from enum import Enum
 from typing import NamedTuple, Set
 
 __author__ = 'acushner'
 
 from pyaoc2019.interpreter import Program, parse_file, process
-
-
-class Coord(NamedTuple):
-    x: int
-    y: int
-
-    def __add__(self, other):
-        return Coord(self.x + other[0], self.y + other[1])
-
-
-class Direction(Enum):
-    up = Coord(1, 0)
-    right = Coord(0, 1)
-    down = Coord(-1, 0)
-    left = Coord(0, -1)
-
-    def rotated(self, val):
-        """
-        0: rotate 90 deg counter-clockwise"
-        1: rotate 90 deg clockwise"
-        """
-        dirs = list(Direction)
-        val = 2 * val - 1
-        new_idx = (dirs.index(self) + val) % len(dirs)
-        return dirs[new_idx]
+from pyaoc2019.utils import Coord, Direction
 
 
 class HullRobot:

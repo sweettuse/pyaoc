@@ -1,12 +1,15 @@
 import time
 from collections import deque
 from contextlib import contextmanager
+from enum import Enum
 from itertools import islice
 from pathlib import Path
 
 __author__ = 'acushner'
 
-from typing import Any, Iterable
+from typing import Any, Iterable, NamedTuple
+
+from pyaoc2019.colors.tile_utils import RC
 
 path = Path('/Users/acushner/software/pyaoc2019/pyaoc2019/inputs')
 
@@ -72,6 +75,38 @@ class classproperty:
         if not self._set:
             raise AttributeError(f"can't set attribute {self._get.__name__}")
         self._set(type(instance), value)
+
+
+class Coord(NamedTuple):
+    x: int
+    y: int
+
+    def __add__(self, other):
+        return Coord(self.x + other[0], self.y + other[1])
+
+    def __sub__(self, other):
+        return Coord(self.x - other[0], self.y - other[1])
+
+    @property
+    def rc(self):
+        return RC(self.y, self.x)
+
+
+class Direction(Enum):
+    up = Coord(1, 0)
+    right = Coord(0, 1)
+    down = Coord(-1, 0)
+    left = Coord(0, -1)
+
+    def rotated(self, val):
+        """
+        0: rotate 90 deg counter-clockwise
+        1: rotate 90 deg clockwise
+        """
+        dirs = list(Direction)
+        val = 2 * val - 1
+        new_idx = (dirs.index(self) + val) % len(dirs)
+        return dirs[new_idx]
 
 
 def exhaust(iterable):
