@@ -87,6 +87,9 @@ class Coord(NamedTuple):
     def __sub__(self, other):
         return Coord(self.x - other[0], self.y - other[1])
 
+    def __neg__(self):
+        return Coord(-self.x, -self.y)
+
     @property
     def rc(self):
         return RC(self.y, self.x)

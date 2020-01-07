@@ -133,7 +133,7 @@ class PlayArcade(Arcade):
                 bd = -bd
 
             self.draw()
-            yield bd.y
+            yield bd.x
 
 
 def aoc13_a():
