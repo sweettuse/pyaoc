@@ -1,9 +1,10 @@
+import os
 import time
 from collections import Counter
 from enum import Enum
 from typing import Dict, NamedTuple, Optional
 
-from cytoolz import juxt
+from cytoolz import juxt, memoize, comp
 
 from pyaoc2019.colors.colors import Color, Colors
 from pyaoc2019.colors.tile_utils import ColorMatrix
@@ -13,19 +14,9 @@ from pyaoc2019.utils import Coord, exhaust
 __author__ = 'acushner'
 
 
-class Direction(Enum):
-    up = Coord(0, -1)
-    right = Coord(1, 0)
-    down = Coord(0, 1)
-    left = Coord(-1, 0)
-
-
 class Dimensions(NamedTuple):
     upper_left: Coord
     lower_right: Coord
-
-    def to_rc(self):
-        return self.upper_left.rc, self.lower_right.rc
 
 
 class Tile(Enum):
@@ -39,10 +30,13 @@ class Tile(Enum):
 color_map: Dict[Tile, Color] = {
     Tile.empty: Colors.OFF,
     Tile.wall: Colors.YELLOW,
-    Tile.block: Colors.MARIO_BLUE,
-    Tile.paddle: Colors.COLD_WHITE,
-    Tile.ball: Colors.RED,
+    Tile.block: Colors.COPILOT_BLUE,
+    Tile.paddle: Colors.WHITE,
+    Tile.ball: Colors.MARIO_RED,
+
 }
+
+cached_property = comp(property, memoize)
 
 
 class Arcade:
@@ -53,11 +47,12 @@ class Arcade:
         program.suppress_output = True
         proc = process(program)
         exhaust(map(self._update_board, *([proc] * 3)))
+        self.draw()
 
     def _update_board(self, x, y, tile_id):
         self.board[Coord(x, y)] = Tile(tile_id)
 
-    @property
+    @cached_property
     def board_dimensions(self) -> Dimensions:
         xs = {c.x for c in self.board}
         ys = {c.y for c in self.board}
@@ -65,6 +60,11 @@ class Arcade:
         min_x, max_x = juxt(min, max)(xs)
         min_y, max_y = juxt(min, max)(ys)
         return Dimensions(Coord(min_x, min_y), Coord(max_x, max_y))
+
+    @cached_property
+    def color_matrix(self) -> ColorMatrix:
+        _, lr = self.board_dimensions
+        return ColorMatrix.from_shape(lr.rc + (1, 1))
 
     @property
     def rc_board(self):
@@ -77,14 +77,14 @@ class Arcade:
         time.sleep(sleep_secs)
 
     def _populate_board(self):
-        _, lr = self.board_dimensions
-        cm = ColorMatrix.from_shape(lr.rc + (1, 1))
+        cm = self.color_matrix
         for rc, t in self.rc_board.items():
             cm[rc] = color_map[t]
         return cm
 
     def draw(self):
         """draw board to screen"""
+        os.system('clear')
         self._display_board(self._populate_board())
 
 
@@ -92,41 +92,49 @@ class PlayArcade(Arcade):
     def __init__(self):
         super().__init__()
         self.score = 0
-        self._prev_ball_pos: Optional[Coord] = None
         self._ball_pos: Optional[Coord] = None
-        self._cur_ball_dir: Optional[Direction] = None
+        self._next_ball_pos: Optional[Coord] = None
         self.paddle_pos: Optional[Coord] = None
 
     def _update_board(self, x, y, tile_id):
         if (x, y) == (-1, 0):
             self.score = tile_id
-        else:
-            super()._update_board(x, y, tile_id)
-            t = Tile(tile_id)
-            if t is Tile.ball:
-                self.ball_pos = Coord(x, y)
-            elif t is Tile.paddle:
-                self.paddle_pos = Coord(x, y)
+            return
+
+        t = Tile(tile_id)
+        if t is Tile.ball:
+            self.ball_pos = Coord(x, y)
+            return
+
+        if t is Tile.paddle:
+            self.paddle_pos = Coord(x, y)
+        super()._update_board(x, y, tile_id)
 
     @property
     def ball_pos(self):
         return self._ball_pos
 
     @ball_pos.setter
-    def ball_pos(self, val: Coord):
-        self._prev_ball_pos = self.ball_pos
-        self._ball_pos = val
+    def ball_pos(self, next_pos: Coord):
+        ub = super()._update_board
+        if self._ball_pos:
+            ub(*self._ball_pos, Tile.empty)
+
+        self._ball_pos = self._next_ball_pos
+        self._next_ball_pos = next_pos
+        if self._ball_pos:
+            ub(*self._ball_pos, Tile.ball)
 
     @property
     def ball_dir(self) -> Optional[int]:
-        if not (self._ball_pos and self._prev_ball_pos):
+        if not (self._next_ball_pos and self._ball_pos):
             return
-        return (self._ball_pos - self._prev_ball_pos).x
+        return (self._next_ball_pos - self._ball_pos).x
 
     def adjust_joystick(self):
         """input stream for program"""
         while True:
-            if not self._prev_ball_pos or not self.paddle_pos:
+            if not self._ball_pos or not self.paddle_pos:
                 self.draw()
                 yield 0
                 continue
@@ -136,7 +144,7 @@ class PlayArcade(Arcade):
             yield mtb if mtb is not None else self.ball_dir
 
     def _move_toward_ball(self) -> Optional[int]:
-        paddle_dir = (self._prev_ball_pos - self.paddle_pos).x
+        paddle_dir = (self._ball_pos - self.paddle_pos).x
         if not paddle_dir:
             return
         return min(1, max(-1, paddle_dir // 2))
@@ -150,9 +158,8 @@ class PlayArcade(Arcade):
         time.sleep(sleep_secs)
 
 
-
 display_board = True
-sleep_secs = .5
+sleep_secs = .2
 
 
 def aoc13_a():
@@ -160,7 +167,6 @@ def aoc13_a():
     arcade.run(parse_file(13))
     print(Counter(arcade.board.values()))
     print(arcade.board_dimensions)
-    arcade.draw()
     return sum(v is Tile.block for v in arcade.board.values())
 
 

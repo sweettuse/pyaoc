@@ -310,9 +310,8 @@ class ColorMatrix(List[List[Color]]):
 
     @property
     def color_str(self):
-        # res = [80 * '=', f'ColorMatrix: Shape{self.shape}']
         res = []
-        # encode groups with (color, num_repeats) tuples for less overhead
+        # group like colors together to decrease length of str
         groups = (((c, sum(1 for _ in v)) for c, v in groupby(row)) for row in self)
         res.extend(''.join(c.color_str('  ' * total, set_bg=True) for c, total in row) for row in groups)
         res.append('')
