@@ -22,7 +22,7 @@ def parse_file(name):
 
 
 async def calc_orbits(orbital_map, n_parents=0, current_body='COM'):
-    tasks = [asyncio.create_task(calc_orbits(orbital_map, n_parents + 1, p)) for p in orbital_map[current_body]]
+    tasks = (asyncio.create_task(calc_orbits(orbital_map, n_parents + 1, p)) for p in orbital_map[current_body])
     return n_parents + sum(await asyncio.gather(*tasks))
 
 
@@ -45,8 +45,9 @@ def calc_num_transfers(orbital_map):
 
 def __main():
     with U.localtimer():
-        print(asyncio.run(calc_orbits(parse_file('06')[0])))
-        print(calc_num_transfers(parse_file('06')[1]))
+        par_child_map, child_par_map = parse_file('06')
+        print(asyncio.run(calc_orbits(par_child_map)))
+        print(calc_num_transfers(child_par_map))
 
 
 if __name__ == '__main__':

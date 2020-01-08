@@ -1,15 +1,14 @@
 import time
-from collections import Counter, defaultdict
+from collections import Counter
 from enum import Enum
-from itertools import product
-from typing import Dict, NamedTuple, Optional, Tuple
+from typing import Dict, NamedTuple, Optional
 
 from cytoolz import juxt
 
+from pyaoc2019.colors.colors import Color, Colors
+from pyaoc2019.colors.tile_utils import ColorMatrix
 from pyaoc2019.interpreter import Program, parse_file, process
 from pyaoc2019.utils import Coord, exhaust
-from pyaoc2019.colors.colors import Color, Colors, RGB
-from pyaoc2019.colors.tile_utils import ColorMatrix
 
 __author__ = 'acushner'
 
@@ -71,14 +70,22 @@ class Arcade:
     def rc_board(self):
         return {c.rc: t for c, t in self.board.items()}
 
-    def draw(self):
-        """draw board to screen"""
+    def _display_board(self, board: ColorMatrix):
+        if not display_board:
+            return
+        print(board.color_str)
+        time.sleep(sleep_secs)
+
+    def _populate_board(self):
         _, lr = self.board_dimensions
         cm = ColorMatrix.from_shape(lr.rc + (1, 1))
         for rc, t in self.rc_board.items():
             cm[rc] = color_map[t]
-        print(cm.color_str)
-        time.sleep(1)
+        return cm
+
+    def draw(self):
+        """draw board to screen"""
+        self._display_board(self._populate_board())
 
 
 class PlayArcade(Arcade):
@@ -111,29 +118,41 @@ class PlayArcade(Arcade):
         self._ball_pos = val
 
     @property
-    def ball_dir(self) -> Optional[Direction]:
+    def ball_dir(self) -> Optional[int]:
         if not (self._ball_pos and self._prev_ball_pos):
-            return None
-        c = self._ball_pos - self._prev_ball_pos
-        return Direction(Coord(0, c.y))
+            return
+        return (self._ball_pos - self._prev_ball_pos).x
 
     def adjust_joystick(self):
+        """input stream for program"""
         while True:
-            bd = self.ball_dir
-            if not bd or not self.paddle_pos:
+            if not self._prev_ball_pos or not self.paddle_pos:
                 self.draw()
                 yield 0
                 continue
 
-            # TODO: take into account y position of
-            bd = bd.value
-
-            new_pos = self.paddle_pos + bd
-            if self.board[new_pos] is Tile.wall:
-                bd = -bd
-
             self.draw()
-            yield bd.x
+            mtb = self._move_toward_ball()
+            yield mtb if mtb is not None else self.ball_dir
+
+    def _move_toward_ball(self) -> Optional[int]:
+        paddle_dir = (self._prev_ball_pos - self.paddle_pos).x
+        if not paddle_dir:
+            return
+        return min(1, max(-1, paddle_dir // 2))
+
+    def _display_board(self, board: ColorMatrix):
+        if not display_board:
+            return
+        score_str = f'SCORE: {self.score:05d}'
+        print(Colors.COPILOT_BLUE.color_str(score_str))
+        print(board.color_str)
+        time.sleep(sleep_secs)
+
+
+
+display_board = True
+sleep_secs = .5
 
 
 def aoc13_a():
@@ -150,6 +169,7 @@ def aoc13_b():
     program = parse_file(13, arcade.adjust_joystick())
     program[0] = 2
     arcade.run(program)
+    return arcade.score
 
 
 def __main():
