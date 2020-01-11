@@ -40,6 +40,9 @@ cached_property = comp(property, memoize)
 
 
 class Arcade:
+    display_board = True
+    sleep_secs = .2
+
     def __init__(self):
         self.board: Dict[Coord, Tile] = {}
 
@@ -71,10 +74,10 @@ class Arcade:
         return {c.rc: t for c, t in self.board.items()}
 
     def _display_board(self, board: ColorMatrix):
-        if not display_board:
+        if not self.display_board:
             return
         print(board.color_str)
-        time.sleep(sleep_secs)
+        time.sleep(self.sleep_secs)
 
     def _populate_board(self):
         cm = self.color_matrix
@@ -150,16 +153,12 @@ class PlayArcade(Arcade):
         return min(1, max(-1, paddle_dir // 2))
 
     def _display_board(self, board: ColorMatrix):
-        if not display_board:
+        if not self.display_board:
             return
         score_str = f'SCORE: {self.score:05d}'
         print(Colors.COPILOT_BLUE.color_str(score_str))
         print(board.color_str)
-        time.sleep(sleep_secs)
-
-
-display_board = True
-sleep_secs = .2
+        time.sleep(self.sleep_secs)
 
 
 def aoc13_a():

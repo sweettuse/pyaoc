@@ -2,7 +2,7 @@ from pyaoc2019.aoc02 import aoc2_a, aoc2_b
 from pyaoc2019.aoc05 import aoc5_a, aoc5_b
 from pyaoc2019.aoc07 import feedback, get_best
 from pyaoc2019.aoc11 import aoc11_a
-from pyaoc2019.aoc13 import aoc13_a, aoc13_b
+from pyaoc2019.aoc13 import aoc13_a, aoc13_b, Arcade
 from pyaoc2019.interpreter import parse_file, parse_data, process_no_yield
 
 __author__ = 'acushner'
@@ -51,6 +51,7 @@ class Test:
         assert aoc11_a() == 2054
 
     def test13(self):
+        Arcade.display_board = False
         assert aoc13_a() == 452
         assert aoc13_b() == 21415
 

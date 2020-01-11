@@ -5,3 +5,4 @@ pytest
 sty
 toolz
 uvloop
+pillow

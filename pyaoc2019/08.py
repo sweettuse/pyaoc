@@ -15,20 +15,19 @@ layers = list(U.chunks(data, layer_size))
 
 
 def aoc8_a():
-    least_zeroes = min((Counter(l) for l in layers), key=lambda c: c[0])
+    least_zeroes = min((Counter(l) for l in layers), key=first)
     return least_zeroes[1] * least_zeroes[2]
 
 
 def aoc8_b():
     pixels = (first(dropwhile(lambda v: v == 2, pixel_vals)) for pixel_vals in zip(*layers))
-    return U.chunks(pixels, width)
+    return [''.join('X' if v else ' ' for v in row) for row in U.chunks(pixels, width)]
 
 
 def __main():
     print(aoc8_a())
     print()
-    for row in aoc8_b():
-        print(''.join('X' if v else ' ' for v in row))
+    U.exhaust(map(print, aoc8_b()))
 
 
 if __name__ == '__main__':

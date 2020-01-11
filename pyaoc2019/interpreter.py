@@ -33,7 +33,7 @@ def parse_file(name, inputs=None):
 
 
 # ======================================================================================================================
-# SUPPORTING CLASSES
+# PROGRAM
 # ======================================================================================================================
 
 class Program(List[int]):
@@ -42,7 +42,7 @@ class Program(List[int]):
 
     def __init__(self, *args, inputs: Optional[Iterable[int]] = None, suppress_output=False, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pc = 0
+        self.pc = 0  # program counter
         self.relative_base = 0
         if debug:
             print(inputs)
@@ -62,7 +62,7 @@ class Program(List[int]):
     def read(self, *vals) -> Union[int, Iterable[int]]:
         res = (self[v] for v in vals)
         if len(vals) == 1:
-            return next(res)
+            res = next(res)
         return res
 
     def write(self, idx, v):
@@ -79,8 +79,28 @@ class Program(List[int]):
     def execute(self):
         while self.valid:
             oc = Opcode.from_program(self)
-            yield oc.fi.inst(oc)
+            inst = oc.inst_info.inst(oc)
+            inst.run()
+            if inst.opcode.code == 4:
+                yield self.output_register
 
+    def get_idx(self, param_mode, idx) -> int:
+        """return idx based on param mode"""
+        if param_mode == 0:
+            # positional mode - value at idx represents ultimate idx
+            return self[idx]
+        if param_mode == 1:
+            # immediate mode - value at idx represents the value to use
+            return idx
+        if param_mode == 2:
+            # relative mode - idx is offset by relative_base
+            return self[idx] + self.relative_base
+        raise ValueError(f'invalid param mode: {param_mode}')
+
+
+# ======================================================================================================================
+# INSTRUCTION METADATA
+# ======================================================================================================================
 
 class InstructionInfo(NamedTuple):
     """store information about a single instruction type"""
@@ -89,51 +109,40 @@ class InstructionInfo(NamedTuple):
     arity: int
 
 
-def _get_idx(param_mode, idx, program: Program) -> int:
-    """return idx based on param mode"""
-    if param_mode == 0:
-        # positional mode - value at idx represents ultimate idx
-        return program[idx]
-    if param_mode == 1:
-        # immediate mode - value at idx represents the value to use
-        return idx
-    if param_mode == 2:
-        # relative mode - idx is offset by relative_base
-        return program[idx] + program.relative_base
-    raise ValueError(f'invalid param mode: {param_mode}')
-
-
 @dataclass
-class Opcode(ABC):
+class Opcode:
     code: int
     addresses: Tuple[int]
     program: Program
-    fi: InstructionInfo
+    inst_info: InstructionInfo
 
     @classmethod
     def from_program(cls, program: Program):
         code = program.cur
         idx = program.pc
+
         int_code = code % 100
         str_code = f'{code:05d}'
         if debug:
             print('idx, code:', idx, code)
-        fi = opcodes[int_code]
+        inst_info = opcodes[int_code]
 
-        addresses = tuple(_get_idx(m, v, program) for (m, v) in
-                          take(fi.arity, zip(map(int, reversed(str_code[:-2])), count(idx + 1))))
+        param_modes = take(inst_info.arity, map(int, reversed(str_code[:-2])))
+        addresses = tuple(map(program.get_idx, param_modes, count(idx + 1)))
 
-        return cls(int_code, addresses, program, fi)
+        return cls(int_code, addresses, program, inst_info)
 
     def standard_adjust_pc(self):
-        self.program.pc += self.fi.arity + 1
+        self.program.pc += self.inst_info.arity + 1
 
 
 # ======================================================================================================================
-# INDIVIDUAL PROGRAM
+# INDIVIDUAL INSTRUCTIONS
 # ======================================================================================================================
 
-def _adjust_pc(func):
+def _inc_pc(func):
+    """automatically implement pc based on function arity"""
+
     @wraps(func)
     def wrapper(self: InstructionBase, *args, **kwargs):
         try:
@@ -152,44 +161,44 @@ class InstructionBase(ABC):
 
     @abstractmethod
     def run(self):
-        """logic of each instruction should be implemented here in subclasses"""
+        """implement logic in subclasses for each instruction"""
 
     @property
-    def insts(self):
+    def prog(self):
         """convenience property"""
         return self.opcode.program
 
 
-class RunAndWrite(InstructionBase):
-    """reduce an operator on n-args and write out the result as an integer"""
+class InstCalcAndWrite(InstructionBase):
+    """reduce an operator on n-args and write out the result"""
 
     def __init__(self, opcode: Opcode, op: Callable[[int, ...], int]):
         super().__init__(opcode)
         self.op = op
 
-    @_adjust_pc
+    @_inc_pc
     def run(self):
-        *idxs, out = self.opcode.addresses
-        self.insts.write(out, reduce(self.op, self.insts.read(*idxs)))
+        *addresses, out = self.opcode.addresses
+        self.prog.write(out, reduce(self.op, self.prog.read(*addresses)))
 
 
-class ProcInput(InstructionBase):
+class InstInput(InstructionBase):
     """read in input from input stream and write out"""
 
-    @_adjust_pc
+    @_inc_pc
     def run(self):
-        self.insts.write(*self.opcode.addresses, next(self.insts.inputs))
+        self.prog.write(first(self.opcode.addresses), next(self.prog.inputs))
 
 
-class ProcOutput(InstructionBase):
+class InstOutput(InstructionBase):
     """write value to output_register"""
 
-    @_adjust_pc
+    @_inc_pc
     def run(self):
-        self.insts.output_register = self.insts.read(*self.opcode.addresses)
+        self.prog.output_register = self.prog.read(first(self.opcode.addresses))
 
 
-class Jump(InstructionBase):
+class InstJump(InstructionBase):
     """change pc depending on predicate"""
 
     def __init__(self, opcode: Opcode, predicate: Callable[[int], bool]):
@@ -197,31 +206,31 @@ class Jump(InstructionBase):
         self.predicate = predicate
 
     def run(self):
-        test, new_idx = self.insts.read(*self.opcode.addresses)
+        test, new_idx = self.prog.read(*self.opcode.addresses)
         if self.predicate(test):
-            self.insts.pc = new_idx
+            self.prog.pc = new_idx
         else:
             self.opcode.standard_adjust_pc()
 
 
-class RelativeBase(InstructionBase):
+class InstRelativeBase(InstructionBase):
     """adjust the relative base"""
 
-    @_adjust_pc
+    @_inc_pc
     def run(self):
-        self.insts.relative_base += self.insts.read(*self.opcode.addresses)
+        self.prog.relative_base += self.prog.read(*self.opcode.addresses)
 
 
 opcodes: Dict[int, InstructionInfo] = {
-    1: InstructionInfo('add', lambda oc: RunAndWrite(oc, add), 3),
-    2: InstructionInfo('mul', lambda oc: RunAndWrite(oc, mul), 3),
-    3: InstructionInfo('read-in', ProcInput, 1),
-    4: InstructionInfo('write-out', ProcOutput, 1),
-    5: InstructionInfo('jump-if-true', lambda oc: Jump(oc, bool), 2),
-    6: InstructionInfo('jump-if-false', lambda oc: Jump(oc, lambda v: not v), 2),
-    7: InstructionInfo('less-than', lambda oc: RunAndWrite(oc, comp(int, lt)), 3),
-    8: InstructionInfo('equals', lambda oc: RunAndWrite(oc, comp(int, eq)), 3),
-    9: InstructionInfo('relative-base', RelativeBase, 1),
+    1: InstructionInfo('add', lambda oc: InstCalcAndWrite(oc, add), 3),
+    2: InstructionInfo('mul', lambda oc: InstCalcAndWrite(oc, mul), 3),
+    3: InstructionInfo('read-in', InstInput, 1),
+    4: InstructionInfo('write-out', InstOutput, 1),
+    5: InstructionInfo('jump-if-true', lambda oc: InstJump(oc, bool), 2),
+    6: InstructionInfo('jump-if-false', lambda oc: InstJump(oc, lambda v: not v), 2),
+    7: InstructionInfo('less-than', lambda oc: InstCalcAndWrite(oc, comp(int, lt)), 3),
+    8: InstructionInfo('equals', lambda oc: InstCalcAndWrite(oc, comp(int, eq)), 3),
+    9: InstructionInfo('relative-base', InstRelativeBase, 1),
 }
 
 
@@ -229,10 +238,7 @@ opcodes: Dict[int, InstructionInfo] = {
 
 
 def process(program: Program):
-    for inst in program.execute():
-        inst.run()
-        if inst.opcode.code == 4:
-            yield program.output_register
+    yield from program.execute()
 
 
 def process_no_yield(program: Program):
