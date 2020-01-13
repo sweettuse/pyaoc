@@ -2,6 +2,7 @@ import time
 from collections import deque
 from contextlib import contextmanager
 from enum import Enum
+from functools import wraps
 from itertools import islice
 from pathlib import Path
 
@@ -26,6 +27,18 @@ def localtimer():
     start = time.perf_counter()
     yield
     print('func took', time.perf_counter() - start)
+
+
+def timer(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        try:
+            return func(*args, **kwargs)
+        finally:
+            print(f'{func.__name__!r} took {time.perf_counter() - start} seconds')
+
+    return wrapper
 
 
 def chunks(it: Iterable[Any], size):
