@@ -1,3 +1,5 @@
+tqdm
+dask
 cytoolz
 more-itertools
 numpy
