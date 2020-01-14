@@ -2,6 +2,8 @@ import math
 import time
 from functools import reduce
 from itertools import repeat
+from typing import NamedTuple, List
+
 import numpy as np
 import dask.array as da
 import tqdm
@@ -97,13 +99,54 @@ def powers_of_n(n):
         start *= n
 
 
+# ======================================================================================================================
+# PART B
+# ======================================================================================================================
+
+class CompressedCoeff(NamedTuple):
+    n: int
+    val: int
+
+
+class Coefficients(NamedTuple):
+    str_n: str
+    n_to_drop: int
+    ccs: List[CompressedCoeff]
+
+
+class AOC16B:
+    def __init__(self, str_n: str):
+        self.str_n = str_n
+
+    @property
+    def str_n(self):
+        return self._str_n
+
+    @str_n.setter
+    def str_n(self, val: str):
+        self._str_n = val
+        self._ints = np.array([int(d) for d in val])
+
+    def update(self):
+        pass
+
+    @staticmethod
+    def _calc_one(ints, index, length):
+        pass
+
+    @staticmethod
+    def _get_indices(index, length):
+        """return indices needed using np.r_ """
+
+
+
+# ======================================================================================================================
+# MAIN
+# ======================================================================================================================
 def __main():
-    # print(parse_file())
-    # print(get_coeffs_streams(8)[:5])
     # print(calc('12345678', 4))
     # print(calc('80871224585914546619083218645595', 100))
     print(aoc16_a())
-    # print()
 
     print(coefficients(8, 2))
 
