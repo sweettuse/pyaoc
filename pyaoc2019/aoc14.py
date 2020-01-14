@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from collections import defaultdict
 from itertools import chain, count
-from typing import Union, NamedTuple, List, Dict, Optional, Set
+from typing import Union, NamedTuple, Dict, Set
 
 from cytoolz import memoize
 
@@ -69,7 +69,7 @@ CompoundMap = Dict[str, Compound]
 
 class Compounds:
     def __init__(self, filename: str):
-        self.name_compound_map: Dict[str, Compound] = parse_file(filename)
+        self.name_compound_map: CompoundMap = parse_file(filename)
         self._bank = defaultdict(int)
         self.amount_needed = defaultdict(int)
 
@@ -90,8 +90,7 @@ class Compounds:
 def with_total_ore(filename, total=1e12):
     start_hint = _calc_start_hint(filename, total)
     for t in count(start_hint):
-        cur = Compounds(filename).cost(t)
-        if cur > total:
+        if Compounds(filename).cost(t) > total:
             return t - 1
 
 
