@@ -1,3 +1,4 @@
+import pickle
 import time
 from collections import deque
 from contextlib import contextmanager
@@ -104,6 +105,10 @@ class Coord(NamedTuple):
         return Coord(-self.x, -self.y)
 
     @property
+    def manhattan(self):
+        return abs(self.x) + abs(self.y)
+
+    @property
     def rc(self):
         return RC(self.y, self.x)
 
@@ -127,3 +132,24 @@ class Direction(Enum):
 
 def exhaust(iterable):
     deque(iterable, maxlen=0)
+
+
+class Pickle:
+    _outdir = Path('/tmp/.pydata')
+
+    @classmethod
+    def read(cls, *filenames):
+        res = []
+        for n in filenames:
+            with open(cls._outdir / n, 'rb') as f:
+                res.append(pickle.load(f))
+        return res
+
+    @classmethod
+    def write(cls, **name_obj_pairs):
+        for n, obj in name_obj_pairs.items():
+            with open(cls._outdir / n, 'rb') as f:
+                pickle.dump(obj, f)
+
+
+

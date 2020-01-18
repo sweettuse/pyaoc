@@ -46,7 +46,7 @@ class Program(List[int]):
         self.relative_base = 0
         if debug:
             print(inputs)
-        self.inputs = iter(inputs or [])
+        self.inputs = inputs
         self.suppress_output = suppress_output
 
     @property
@@ -58,6 +58,14 @@ class Program(List[int]):
         if not self.suppress_output:
             print(f'OUT: {val}')
         Program._output_register = val
+
+    @property
+    def inputs(self):
+        return self._inputs
+
+    @inputs.setter
+    def inputs(self, val):
+        self._inputs = iter(val or [])
 
     def read(self, *vals) -> Union[int, Iterable[int]]:
         res = (self[v] for v in vals)

@@ -46,6 +46,7 @@ def calc_next(str_n: str) -> str:
 
 def calc(str_n: str, times: int) -> str:
     for _ in tqdm.trange(times):
+        print(str_n)
         str_n = calc_next(str_n)
     return str_n
 
@@ -103,6 +104,10 @@ def powers_of_n(n):
 # PART B
 # ======================================================================================================================
 
+def chunked_coeffs(length, n):
+    pass
+
+
 class CompressedCoeff(NamedTuple):
     n: int
     val: int
@@ -139,22 +144,21 @@ class AOC16B:
         """return indices needed using np.r_ """
 
 
-
 # ======================================================================================================================
 # MAIN
 # ======================================================================================================================
 def __main():
-    # print(calc('12345678', 4))
+    print(calc('00000001', 10))
     # print(calc('80871224585914546619083218645595', 100))
-    print(aoc16_a())
+    # print(aoc16_a())
 
-    print(coefficients(8, 2))
+    # print(coefficients(8, 2))
 
-    for i in take(11, powers_of_n(2)):
-        print(i, end=', ')
-        get_coeffs_streams(i)
+    # for i in take(11, powers_of_n(2)):
+    #     print(i, end=', ')
+    #     get_coeffs_streams(i)
 
-    print(get_coeffs_streams(16))
+    # print(get_coeffs_streams(16))
     # print(aoc16_b())
 
 
