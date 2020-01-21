@@ -24,8 +24,8 @@ def feedback(fn_or_data, inputs, as_data=True):
     amps = 'ABCDE'
     amp_map = {}
     inputs = iter(inputs)
-    endless_amps = (a for amps in repeat(amps) for a in amps)
 
+    endless_amps = (a for amps in repeat(amps) for a in amps)
     for a in endless_amps:
         try:
             proc = amp_map[a]

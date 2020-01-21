@@ -38,8 +38,8 @@ class Map:
     def __init__(self):
         self._map: Dict[Coord, Tile] = {}
 
-    def update(self, c: Coord, t: Tile):
-        self._map[c] = t
+    def __setitem__(self, key, value):
+        self._map[key] = value
 
     def to_check(self, c: Coord):
         return [d for d, offset in dir_offset_map.items() if c + offset not in self._map]
@@ -49,7 +49,7 @@ class RepairDroid:
     def __init__(self, program: Program):
         self._cur_pos = Coord(0, 0)
         self._map = Map()
-        self._map.update(self._cur_pos, Tile.empty)
+        self._map[self._cur_pos] = Tile.empty
         self._prog = self._init_program(program)
         self._path = [self._cur_pos]
         self._last_dir = None
@@ -63,7 +63,7 @@ class RepairDroid:
     def run(self):
         for t in map(Tile, self._prog.execute()):
             next_pos = self._cur_pos + dir_offset_map[self._last_dir]
-            self._map.update(next_pos, t)
+            self._map[next_pos] = t
 
             if random.random() < .0001:
                 print(t, next_pos)

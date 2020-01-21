@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from functools import wraps, reduce
 from itertools import count, chain
 from operator import add, mul, lt, eq
@@ -117,8 +116,7 @@ class InstructionInfo(NamedTuple):
     arity: int
 
 
-@dataclass
-class Opcode:
+class Opcode(NamedTuple):
     code: int
     addresses: Tuple[int]
     program: Program
