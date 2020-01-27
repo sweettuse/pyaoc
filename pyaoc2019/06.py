@@ -27,27 +27,24 @@ async def calc_orbits(orbital_map, n_parents=0, current_body='COM'):
 
 
 def _get_parents(orbital_map, name):
-    res = {}
-    c = count()
-    while True:
-        name = orbital_map.get(name)
-        if not name:
-            return res
+    res, c = {}, count()
+    while name := orbital_map.get(name):
         res[name] = next(c)
+    return res
 
 
 def calc_num_transfers(orbital_map):
-    sp, mp = _get_parents(orbital_map, 'SAN'), _get_parents(orbital_map, 'YOU')
-    shared_ancestors = set(sp) & mp.keys()
-    closest_parent, s_dist = min(((k, sp[k]) for k in shared_ancestors), key=itemgetter(1))
-    return s_dist + mp[closest_parent]
+    santa_fam, my_fam = _get_parents(orbital_map, 'SAN'), _get_parents(orbital_map, 'YOU')
+    shared_ancestors = set(santa_fam) & my_fam.keys()
+    closest_parent, s_dist = min(((k, santa_fam[k]) for k in shared_ancestors), key=itemgetter(1))
+    return s_dist + my_fam[closest_parent]
 
 
 def __main():
     with U.localtimer():
-        par_child_map, child_par_map = parse_file('06')
-        print(asyncio.run(calc_orbits(par_child_map)))
-        print(calc_num_transfers(child_par_map))
+        parent_child_map, child_parent_map = parse_file('06')
+        print(asyncio.run(calc_orbits(parent_child_map)))
+        print(calc_num_transfers(child_parent_map))
 
 
 if __name__ == '__main__':

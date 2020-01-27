@@ -33,3 +33,15 @@
  - key thought: as soon as "suspending" and "resuming" was mentioned, think generators. that's what they do
  - go over amps/process_map
 
+
+### problem 6: orbits
+ - part 1:
+     - recursive, but not tail recursive
+     - blows out stack
+     - in clojure, basically implemented own stack
+     - in python, used the async event loop to flatten out stack
+         - demo how this works with a drawing perhaps
+     - uses an accumulator to count how many orbits there are (n_parents)
+ - part 2:
+    - thought process was "find all shared parents, with a distance from each one"
+    - find the closest one of those and then sum up those 2 distances
