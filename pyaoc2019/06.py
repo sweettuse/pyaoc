@@ -33,13 +33,13 @@ async def calc_orbits(orbital_map: ParentChildrenMap, n_parents=0, current_body=
 
     starting from the center of the universe, sum up all of these in a recursive fashion
     """
-    tasks = (create_task(calc_orbits(orbital_map, n_parents + 1, p)) for p in orbital_map[current_body])
-    return n_parents + sum(await gather(*tasks))
+    orbits = (calc_orbits(orbital_map, n_parents + 1, p) for p in orbital_map[current_body])
+    return n_parents + sum(await gather(*map(create_task, orbits)))
 
 
 def _get_parents(orbital_map: ChildParentMap, name) -> Dict[str, int]:
     """
-    for a given orbital body, all of its parents/ancestors and its distance to each
+    for a given orbital body, calc all of its parents/ancestors and its distance to each
 
     return {parent_name: distance}
     """
