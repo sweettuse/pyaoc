@@ -1,5 +1,6 @@
 from collections import Counter
 from itertools import dropwhile
+from operator import itemgetter
 
 from cytoolz import first
 
@@ -15,7 +16,7 @@ layers = list(U.chunks(data, layer_size))
 
 
 def aoc8_a():
-    least_zeroes = min((Counter(l) for l in layers), key=first)
+    least_zeroes = min((Counter(l) for l in layers), key=itemgetter(0))
     return least_zeroes[1] * least_zeroes[2]
 
 

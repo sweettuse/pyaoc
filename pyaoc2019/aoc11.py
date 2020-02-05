@@ -61,19 +61,21 @@ class HullRobot:
 def aoc11_a():
     robot = HullRobot()
     program = parse_file(11, robot.cur_color())
+    program.suppress_output = True
     return robot.run(program)
 
 
 def aoc11_b():
     robot = HullRobot(1)
     program = parse_file(11, robot.cur_color())
+    program.suppress_output = True
     robot.run(program)
     robot.draw()
 
 
 def __main():
     print(aoc11_a())
-    # aoc11_b()
+    aoc11_b()
 
 
 if __name__ == '__main__':
