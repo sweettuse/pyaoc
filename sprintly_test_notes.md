@@ -1,3 +1,25 @@
+### 2020/02/06
+### problem 6: orbits
+ - part 1:
+     - thought process:
+        - each orbiting body has an orbit around every one of its parents/grandparents/etc
+     - recursive, but not tail recursive
+     - blows out stack
+     - in clojure, basically implemented own stack
+     - in python, used the async event loop to flatten out stack
+         - demo how this works with a drawing perhaps
+     - uses an accumulator to count how many orbits there are (n_parents)
+     
+ - part 2:
+    - thought process:
+        - find all shared parents and the distance to each parent
+        - to switch to orbit its parent, a body requires 0 orbit changes
+        - to switch to its parent's parent, it requires 1. and so on
+    - find the closest one of those and then sum up those 2 distances
+    
+---
+
+### 2020/01/21
 ### overview
  - reiterate reasoning:
      - work on fun problems not strictly work related
@@ -30,18 +52,6 @@
 
 ### problem 7: amps
  - this was a cool, if tough to understand question
- - key thought: as soon as "suspending" and "resuming" was mentioned, think generators. that's what they do
+ - key thought: as soon as "suspending" and "resuming" were mentioned, think generators. that's what they do
  - go over amps/process_map
 
-
-### problem 6: orbits
- - part 1:
-     - recursive, but not tail recursive
-     - blows out stack
-     - in clojure, basically implemented own stack
-     - in python, used the async event loop to flatten out stack
-         - demo how this works with a drawing perhaps
-     - uses an accumulator to count how many orbits there are (n_parents)
- - part 2:
-    - thought process was "find all shared parents, with a distance from each one"
-    - find the closest one of those and then sum up those 2 distances
