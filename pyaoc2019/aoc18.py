@@ -43,6 +43,9 @@ class Maze(NamedTuple):
         return cls.from_data(res)
 
 
+global_count = count()
+
+
 class PathCache:
     def __init__(self, maze: Maze):
         self._maze = maze
@@ -52,6 +55,7 @@ class PathCache:
     def set_cache(self, found_keys: List[str]):
         all_keys = frozenset(found_keys)
         if not (res := self._cache_map.get(all_keys)):
+            print('adding to cache', next(global_count))
             prev_keys = frozenset(found_keys[:-1])
             res = self._cache_map[all_keys] = self._cache_map[prev_keys].new_child()
         self._cache = res
@@ -68,7 +72,7 @@ class PathCache:
             self[rc1, rc2] = abs(idx2 - idx1)
 
     def get_path_lens(self, key_pos: MyDict[str, RC], cur_pos: RC) -> MyDict[str, int]:
-        print(len(key_pos))
+        # print(len(key_pos))
         impassable = self._maze.walls | {pos for k in key_pos if (pos := self._maze.door_pos.get(k.upper()))}
         res = my_dict()
         for key, rc in key_pos.items():
@@ -86,14 +90,19 @@ class PathCache:
         return res
 
 
+def bfs():
+    pass
+
+
+def calc_steps3(maze: Maze):
+    pass
+
+
 def calc_steps2(maze: Maze):
     path_cache = PathCache(maze)
 
     @memoize
-    def run(found_keys: Tuple[str] = None, cur_pos: RC = None):
-        if not cur_pos:
-            cur_pos = maze.start
-
+    def run(found_keys: Tuple[str] = None, cur_pos: RC = maze.start):
         found_keys = found_keys or ()
         key_pos = maze.key_pos - frozenset(found_keys)
         path_cache.set_cache(found_keys)
@@ -105,15 +114,12 @@ def calc_steps2(maze: Maze):
 
 def calc_steps(maze: Maze):
     @memoize
-    def run(found_keys: FrozenSet[str] = frozenset(), cur_pos: RC = None):
-        if not cur_pos:
-            cur_pos = maze.start
-
+    def run(found_keys: FrozenSet[str] = frozenset(), cur_pos: RC = maze.start):
         next_paths = get_paths(maze.key_pos - found_keys, cur_pos)
         return min((len(v) - 1 + run(found_keys | {k}, last(v)) for k, v in next_paths.items()), default=0)
 
     def get_paths(key_pos, cur_pos):
-        print(len(key_pos))
+        # print(len(key_pos))
         impassable = maze.walls | {pos for k in key_pos if (pos := maze.door_pos.get(k.upper()))}
         return {k: path
                 for k, v in key_pos.items()
@@ -126,7 +132,7 @@ def __main():
     with U.localtimer():
         # print(calc_steps2(Maze.from_file('18.test1')))
         # print(calc_steps2(Maze.from_file('18.test2')))
-        print(calc_steps2(Maze.from_file('18.test2')))
+        print(calc_steps2(Maze.from_file('18.test3')))
         # print(calc_steps(Maze.from_file('18.test3')))
         # print(calc_steps(Maze.from_file('18')))
 

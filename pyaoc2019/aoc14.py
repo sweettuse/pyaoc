@@ -96,7 +96,7 @@ def with_total_ore(filename, total=1e12):
 
 def _calc_start_hint(filename, total) -> int:
     start_guess = total // Compounds(filename).cost()
-    return int(start_guess * (1 / (Compounds(filename).cost(start_guess) / total)))
+    return int(start_guess * (total / (Compounds(filename).cost(start_guess))))
 
 
 @memoize

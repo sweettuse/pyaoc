@@ -17,17 +17,17 @@ def is_monotonic(num: str):
 
 
 def has_exact_double(num: str):
-    return 2 in Counter(num).values()
+    return 2 in Counter(num).values() and is_monotonic(num)
 
 
 def aoc4(*validators):
     validator = juxt(*validators)
-    return sum(1 for n in puzzle_bounds if all(validator(str(n))))
+    return sum(all(validator(str(n))) for n in puzzle_bounds)
 
 
 def __main():
     print(aoc4(has_double, is_monotonic))
-    print(aoc4(has_exact_double, is_monotonic))
+    print(aoc4(has_exact_double))
 
 
 if __name__ == '__main__':
