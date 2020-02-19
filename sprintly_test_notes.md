@@ -1,3 +1,23 @@
+### 2020/02/19
+### problem 4: secure container
+ - simply "brute forced it"
+ - anyone have a better mathematical way?
+ - key moves:
+    - could have tried to check both double values and monotonicity in the same
+    iteration, but it was just a little unwieldy.
+    - cleaner to do separately, still O(n)
+    - `has_exact_double` is kinda cool
+    - functional approach (originally wrote something similar in clojure)
+    
+    
+
+### problem 8: space image format
+ - chunk data into layers
+ - first problem, deal with each layer individually
+ - second part, overlay layers using transposition
+    - fun with different representations of output (change `letters`)
+
+
 ### 2020/02/06
 ### problem 6: orbits
  - part 1:

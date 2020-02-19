@@ -1,5 +1,5 @@
 from collections import Counter
-from itertools import dropwhile
+from itertools import dropwhile, cycle
 from operator import itemgetter
 
 from cytoolz import first
@@ -22,11 +22,13 @@ def aoc8_a():
 
 def aoc8_b():
     pixels = (first(dropwhile(lambda v: v == 2, pixel_vals)) for pixel_vals in zip(*layers))
-    return [''.join('X' if v else ' ' for v in row) for row in U.chunks(pixels, width)]
+    letters = cycle('\u2588')
+    return [''.join(next(letters) if v else ' ' for v in row) for row in U.chunks(pixels, width)]
 
 
 def __main():
     print(aoc8_a())
+    print()
     print()
     U.exhaust(map(print, aoc8_b()))
 
