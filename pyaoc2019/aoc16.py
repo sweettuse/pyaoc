@@ -1,15 +1,12 @@
 import math
 import time
-from functools import reduce
 from itertools import repeat
 from typing import NamedTuple, List
 
-import numpy as np
 import dask.array as da
+import numpy as np
 import tqdm
-from concurrent.futures import ProcessPoolExecutor
-
-from cytoolz import first, take, memoize, comp
+from cytoolz import first, memoize, comp
 
 import pyaoc2019.utils as U
 

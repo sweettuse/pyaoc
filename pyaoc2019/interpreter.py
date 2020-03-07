@@ -19,14 +19,14 @@ debug = False
 # HELPER FUNCTIONS
 # ======================================================================================================================
 
-def parse_data(data: str, inputs=None):
+def parse_data(data: str, inputs=None) -> Program:
     res = Program(chain(map(int, data.split(',')), 2000 * [0]), inputs=inputs)
     if debug:
         print(res)
     return res
 
 
-def parse_file(name, inputs=None):
+def parse_file(name, inputs=None) -> Program:
     data = U.read_file(name).copy()
     return parse_data(first(data), inputs)
 
