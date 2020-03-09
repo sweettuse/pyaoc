@@ -13,10 +13,9 @@ from typing import Any, Iterable, NamedTuple
 
 from pyaoc2019.colors.tile_utils import RC
 
-path = Path('/Users/acushner/software/pyaoc2019/pyaoc2019/inputs')
 
-
-def read_file(name):
+def read_file(name, year=2019):
+    path = Path(f'/Users/acushner/software/pyaoc2019/pyaoc{year}/inputs')
     if isinstance(name, int):
         name = f'{name:02d}'
     with open(path / name) as f:
@@ -150,6 +149,3 @@ class Pickle:
         for n, obj in name_obj_pairs.items():
             with open(cls._outdir / n, 'rb') as f:
                 pickle.dump(obj, f)
-
-
-

@@ -1,4 +1,4 @@
-from itertools import repeat, permutations
+from itertools import repeat, permutations, cycle
 
 from pyaoc2019.interpreter import Program, parse_file, parse_data, process
 
@@ -25,8 +25,7 @@ def feedback(fn_or_data, inputs, as_data=True):
     amp_map = {}
     inputs = iter(inputs)
 
-    endless_amps = (a for amps in repeat(amps) for a in amps)
-    for a in endless_amps:
+    for a in cycle(amps):
         try:
             proc = amp_map[a]
         except KeyError:

@@ -3,6 +3,8 @@ from typing import List, Set
 from pyaoc2019.colors.tile_utils import RC
 from pyaoc2019.interpreter import Program, parse_file, process, process_no_yield
 from pyaoc2019.utils import Coord, Direction
+from itertools import starmap
+from operator import mul
 
 import pyaoc2019.utils as U
 
