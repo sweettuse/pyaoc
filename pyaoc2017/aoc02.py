@@ -32,9 +32,6 @@ def aoc02_b(df):
     return sum(map(_calc_equal_div, to_sets(df)))
 
 
-# def aoc02_b(df: pd.DataFrame):
-#     for vals in map(set, df.iterrows()
-
 def __main():
     df = read_data()
     print(aoc02_a(df))

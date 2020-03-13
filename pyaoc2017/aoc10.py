@@ -1,17 +1,15 @@
 from functools import reduce
-from itertools import islice
 from operator import xor
-from typing import List
+from typing import List, Iterable
 
 from cytoolz.itertoolz import first
-from collections import deque
 
 import pyaoc2019.utils as U
 
 __author__ = 'acushner'
 
 
-def apply_rotations(data: List[int], input_lens: List[int], skip=0):
+def apply_rotations(data: Iterable[int], input_lens: List[int], skip=0):
     d = U.SliceableDeque(data)
     total_rotation = 0
     for skip, il in enumerate(input_lens, skip):

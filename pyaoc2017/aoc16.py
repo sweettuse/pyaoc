@@ -1,8 +1,8 @@
 from itertools import count
 from typing import List
-import numpy as np
 
-from cytoolz.itertoolz import first, take
+from cytoolz.itertoolz import first
+
 import pyaoc2019.utils as U
 
 __author__ = 'acushner'
@@ -51,10 +51,6 @@ def aoc16_a(insts):
     return ''.join(d.layout)
 
 
-def _create_start_end_map(ending_layout):
-    return {i: ending_layout.index(c) for i, c in enumerate(starting_layout)}
-
-
 def aoc16_b(insts):
     period, configurations = _find_period(insts)
     remaining = int(1e9 % period)
@@ -62,9 +58,9 @@ def aoc16_b(insts):
 
 
 def _find_period(insts):
-    d = Dance()
     sl = list(starting_layout)
     res = []
+    d = Dance()
     for c in count(1):
         res.append(''.join(d.layout))
         d.run(insts)
@@ -76,7 +72,6 @@ def __main():
     insts = first(U.read_file(16, 2017)).split(',')
     print(aoc16_a(insts))
     print(aoc16_b(insts))
-
 
 
 if __name__ == '__main__':

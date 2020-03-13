@@ -18,7 +18,7 @@ def aoc14_a():
     return sum(get_hash(i).count('1') for i in range(128))
 
 
-def _get_mem_coords() -> Set[Coord]:
+def _get_occupied_mem_coords() -> Set[Coord]:
     return {Coord(r, c)
             for r in range(128)
             for c, v in enumerate(get_hash(r))
@@ -34,7 +34,7 @@ def _create_connections(coords: Set[Coord]) -> Dict[Coord, Set[Coord]]:
 
 
 def aoc14_b():
-    coords = _get_mem_coords()
+    coords = _get_occupied_mem_coords()
     connections = _create_connections(coords)
     return get_num_distinct_groups(connections)
 

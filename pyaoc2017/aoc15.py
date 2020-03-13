@@ -1,4 +1,5 @@
-from cytoolz.itertoolz import first, take
+from cytoolz.itertoolz import take
+
 import pyaoc2019.utils as U
 
 __author__ = 'acushner'

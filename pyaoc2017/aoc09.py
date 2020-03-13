@@ -4,31 +4,23 @@ import pyaoc2019.utils as U
 
 __author__ = 'acushner'
 
-from enum import Enum
-
-
-class State(Enum):
-    not_garbage = 0
-    inside = 1
-
 
 def remove_garbage(s: str):
-    state = State.not_garbage
+    is_garbage = False
     s = iter(s)
     total_garbage = 0
 
     for c in s:
-        if state is State.inside:
+        if is_garbage:
             if c == '>':
-                state = State.not_garbage
+                is_garbage = False
             elif c == '!':
                 next(s)
             else:
                 total_garbage += 1
         elif c == '<':
-            state = State.inside
-
-        elif state is State.not_garbage:
+            is_garbage = True
+        elif not is_garbage:
             yield c
 
     yield total_garbage
