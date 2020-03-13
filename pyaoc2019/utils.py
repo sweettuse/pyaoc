@@ -90,6 +90,14 @@ class classproperty:
         self._set(type(instance), value)
 
 
+def sign(n):
+    if n > 0:
+        return 1
+    elif n < 0:
+        return -1
+    return 0
+
+
 class Coord(NamedTuple):
     x: int
     y: int
@@ -106,6 +114,12 @@ class Coord(NamedTuple):
     @property
     def manhattan(self):
         return abs(self.x) + abs(self.y)
+
+    @property
+    def hex_manhattan(self):
+        if sign(self.x) == sign(self.y):
+            return abs(self.x + self.y)
+        return max(abs(self.x), abs(self.y))
 
     @property
     def rc(self):
@@ -131,6 +145,30 @@ class Direction(Enum):
 
 def exhaust(iterable):
     deque(iterable, maxlen=0)
+
+
+class SliceableDeque(deque):
+    def __getitem__(self, item):
+        if isinstance(item, slice):
+            return self._get_slice(item)
+        return super().__getitem__(item)
+
+    def __setitem__(self, key, value):
+        if isinstance(key, slice):
+            return self._set_slice(key, value)
+        return super().__setitem__(key, value)
+
+    def _get_slice(self, item: slice):
+        return type(self)(islice(self, item.start, item.stop, item.step))
+
+    def _set_slice(self, key: slice, value):
+        vals = self[key]
+        offset = key.start or 0
+        self.rotate(-offset)
+        for _ in range(len(vals)):
+            self.popleft()
+        self.extendleft(value)
+        self.rotate(offset)
 
 
 class Pickle:

@@ -2,8 +2,7 @@ import pyaoc2019.utils as U
 
 __author__ = 'acushner'
 
-data = U.read_file(4, 2017)
-data = [v.split() for v in data]
+data = [v.split() for v in U.read_file(4, 2017)]
 
 
 def valid_1(data):

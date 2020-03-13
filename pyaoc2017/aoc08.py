@@ -1,14 +1,10 @@
 from collections import defaultdict
-from functools import partial
-from operator import sub, add
+from functools import reduce
+from typing import NamedTuple, Callable, List
 
 import pyaoc2019.utils as U
 
-from typing import NamedTuple, Callable, List
-
 __author__ = 'acushner'
-
-data = defaultdict(int)
 
 
 class Rule(NamedTuple):
@@ -24,12 +20,6 @@ class Rule(NamedTuple):
         cond = lambda _val: eval(f'{_val} {condition} {cond_val}')
         return cls(reg, action, cond_reg, cond)
 
-    def update(self, data):
-        res = float('-inf')
-        if self.cond(data[self.cond_reg]):
-            res = data[self.reg] = self.action(data[self.reg])
-        return res
-
 
 actions = dict(
     dec=lambda val: lambda cur_reg: cur_reg - int(val),
@@ -37,17 +27,25 @@ actions = dict(
 )
 
 
+class Registers:
+    def __init__(self):
+        self.data = defaultdict(int)
+
+    def process_rule(self, rule: Rule):
+        res = float('-inf')
+        if rule.cond(self.data[rule.cond_reg]):
+            res = self.data[rule.reg] = rule.action(self.data[rule.reg])
+        return res
+
+
 def parse_rules(fn=8):
     return [Rule.from_str(s) for s in U.read_file(fn, 2017)]
 
 
 def aoc08(rules: List[Rule]):
-    data = defaultdict(int)
-    running_max = float('-inf')
-    for r in rules:
-        running_max = max(r.update(data), running_max)
-    print(data)
-    return max(data.values()), running_max
+    registers = Registers()
+    running_max = reduce(max, map(registers.process_rule, rules))
+    return max(registers.data.values()), running_max
 
 
 def __main():
