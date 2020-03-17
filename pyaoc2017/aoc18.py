@@ -43,6 +43,8 @@ class Registers:
         self._max_pc = 0
         self._inst_counts = Counter()
         self._send_count = 0
+        if starting_vals:
+            self._regs['p'] = last(starting_vals)
 
     def __setitem__(self, key, value):
         self._regs[key] = value
@@ -147,7 +149,7 @@ async def aoc18_b():
 
 def __main():
     with U.localtimer():
-        print(asyncio.run(aoc18_a()))
+        print(asyncio.run(aoc18_b()))
 
 
 if __name__ == '__main__':

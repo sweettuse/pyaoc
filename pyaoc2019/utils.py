@@ -14,12 +14,15 @@ from typing import Any, Iterable, NamedTuple
 from pyaoc2019.colors.tile_utils import RC
 
 
-def read_file(name, year=2019):
+def read_file(name, year=2019, *, do_strip=True):
     path = Path(f'/Users/acushner/software/pyaoc2019/pyaoc{year}/inputs')
     if isinstance(name, int):
         name = f'{name:02d}'
     with open(path / name) as f:
-        return list(map(str.strip, f.readlines()))
+        res = f.readlines()
+    if do_strip:
+        res = list(map(str.strip, res))
+    return res
 
 
 @contextmanager
@@ -142,6 +145,9 @@ class Direction(Enum):
         new_idx = (dirs.index(self) + val) % len(dirs)
         return dirs[new_idx]
 
+    def __neg__(self):
+        return self.rotated(0).rotated(0)
+
 
 def exhaust(iterable):
     deque(iterable, maxlen=0)
@@ -187,3 +193,7 @@ class Pickle:
         for n, obj in name_obj_pairs.items():
             with open(cls._outdir / n, 'rb') as f:
                 pickle.dump(obj, f)
+
+
+def identity(x):
+    return x
