@@ -1,32 +1,65 @@
-set b 93
-set c b
-jnz a 2
-jnz 1 5
-mul b 100
-sub b -100000
-set c b
-sub c -17000
-set f 1
-set d 2
-set e 2
-set g d
-mul g e
-sub g b
-jnz g 2
-set f 0
-sub e -1
-set g e
-sub g b
-jnz g -8
-sub d -1
-set g d
-sub g b
-jnz g -13
-jnz f 2
-sub h -1
-set g b
-sub g c
-jnz g 2
-jnz 1 3
-sub b -17
-jnz 1 -23
+0   set b 93
+1   set c b
+2   jnz a 2
+3   jnz 1 5
+4   mul b 100
+5   sub b -100000
+6   set c b
+7   sub c -17000
+8   set f 1
+9   set d 2
+10  set e 2
+11  set g d
+12  mul g e
+13  sub g b
+14  jnz g 2
+15  set f 0
+16  sub e -1
+17  set g e
+18  sub g b
+19  jnz g -8
+20  sub d -1
+21  set g d
+22  sub g b
+23  jnz g -13
+24  jnz f 2
+25  sub h -1
+26  set g b
+27  sub g c
+28  jnz g 2
+29  jnz 1 3
+30  sub b -17
+31  jnz 1 -23
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
