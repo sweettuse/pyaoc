@@ -1,3 +1,13 @@
+### 2020/03/26
+### survey
+ - i'll be sending out a survey to get a feel for people's thoughts on this.
+ - things like how much work it is, how difficult, usefulness, etc
+ - i enjoy doing it, but don't want to waste your time
+    - on the other hand, now that we're all inside...
+### advent of code 2017, problem 8
+ - idea for today: try writing together from scratch?
+
+
 ### 2020/02/19
 ### problem 4: secure container
  - simply "brute forced it"
