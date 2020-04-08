@@ -1,6 +1,5 @@
 from collections import defaultdict
-from functools import partial, reduce, wraps
-from operator import lt, gt
+from functools import partial
 from typing import NamedTuple, Callable, Iterable
 
 from pyaoc2019.utils import read_file
@@ -40,7 +39,7 @@ class Registers:
         return res
 
     def run(self, rules: Iterable[Rule]):
-        running_max = reduce(max, map(self.process_rule, rules))
+        running_max = max(map(self.process_rule, rules))
         return max(self._regs.values()), running_max
 
 

@@ -52,20 +52,20 @@ def aoc16_a(insts):
 
 
 def aoc16_b(insts):
-    period, configurations = _find_period(insts)
-    remaining = int(1e9 % period)
-    return ''.join(configurations[remaining])
+    layouts = _find_all_layouts(insts)
+    offset = int(1e9 % len(layouts))
+    return ''.join(layouts[offset])
 
 
-def _find_period(insts):
+def _find_all_layouts(insts):
     sl = list(starting_layout)
     res = []
     d = Dance()
-    for c in count(1):
-        res.append(''.join(d.layout))
+    while True:
+        res.append(d.layout.copy())
         d.run(insts)
         if sl == d.layout:
-            return c, res
+            return res
 
 
 def __main():

@@ -22,7 +22,7 @@ def calc_detections(data, offset=0):
 
 def delay(data, upper=10000000):
     # TODO: calc using lcm
-    return first(offset for offset in range(0, upper) if not calc_detections(data, offset))
+    return first(offset for offset in range(upper) if not calc_detections(data, offset))
 
 
 def __main():
