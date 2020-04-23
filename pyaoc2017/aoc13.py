@@ -28,7 +28,8 @@ def delay(data, upper=10000000):
 def __main():
     data = parse_data(U.read_file(13, 2017))
     print(sum(starmap(mul, calc_detections(data))))
-    print(delay(data))
+    with U.localtimer():
+        print(delay(data))
 
 
 if __name__ == '__main__':

@@ -11,6 +11,7 @@ def parse_data(rows: List[str]):
     def _parse_row(row):
         source, targets = row.split('<->')
         return int(source), set(eval(targets + ','))
+
     return dict(map(_parse_row, rows))
 
 

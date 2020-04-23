@@ -26,7 +26,7 @@ def value_gen(start: int, factor: int, multiple_of=1):
 def aoc15(a_start=A_START, b_start=B_START, a_mult=A_MULT, b_mult=B_MULT, n=40_000_000):
     a_gen = value_gen(a_start, A_FACTOR, a_mult)
     b_gen = value_gen(b_start, B_FACTOR, b_mult)
-    return sum(a == b for (a, b) in take(n, zip(a_gen, b_gen)))
+    return sum(a == b for a, b in take(n, zip(a_gen, b_gen)))
 
 
 def test():

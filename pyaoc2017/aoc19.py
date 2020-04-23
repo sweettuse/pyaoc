@@ -35,11 +35,11 @@ def parse_file(fn):
             if v not in set(' \n')}
 
 
-def aoc19_a(network):
+def aoc19(network):
     cur_pos, cur_val = first(network.items())
     cur_dir = Direction.down
     letter_path = []
-    target_letters = {v for v in network.values() if v in set(string.ascii_uppercase)}
+    target_letters = set(string.ascii_uppercase) & set(network.values())
     straight = set('-|') | target_letters
     for step_total in count(1):
         if cur_val in straight:
@@ -62,8 +62,8 @@ def aoc19_a(network):
 
 
 def __main():
-    network = parse_file('19')
-    print(aoc19_a(network))
+    network = parse_file(19)
+    print(aoc19(network))
 
     pass
 

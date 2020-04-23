@@ -46,23 +46,21 @@ class Particle:
         self.p += self.v
 
     @staticmethod
-    def read_data(fn=20):
+    def read_data(fname=20):
         Particle._particle_count = count()
-        return [Particle.from_str(p) for p in U.read_file(fn, 2017)]
+        return [Particle.from_str(p) for p in U.read_file(fname, 2017)]
 
 
-def aoc20_a(fn=20):
-    parts = Particle.read_data(fn)
+def aoc20_a(fname=20, history_len=500):
+    parts = Particle.read_data(fname)
     key = lambda _p: _p.p.manhattan
-    history_len = 500
     history = deque(maxlen=history_len)
 
     while True:
         U.exhaust(p.tick() for p in parts)
-        parts.sort(key=key)
-        history.append(parts[0].id)
+        history.append(min(parts, key=key).id)
         if len(history) == history_len and len(set(history)) == 1:
-            return parts[0].id
+            return history[0]
 
 
 def _find_dupes(parts: List[Particle]):
@@ -78,8 +76,8 @@ def _find_dupes(parts: List[Particle]):
     return res
 
 
-def aoc20_b(fn=20):
-    parts = Particle.read_data(fn)
+def aoc20_b(fname=20):
+    parts = Particle.read_data(fname)
     parts_by_id = {p.id: p for p in parts}
     for _ in range(1000):
         U.exhaust(parts_by_id.pop(d) for d in _find_dupes(parts))
