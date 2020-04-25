@@ -46,15 +46,21 @@ class Dance:
         self._exchange(*map(self.layout.index, args))
 
 
-class DanceStr(Dance):
-    def __init__(self, sl=STARTING_LAYOUT):
-        super().__init__()
-        self.layout = sl
+class DanceList(Dance):
+    def __init__(self, sl: str = STARTING_LAYOUT):
+        super().__init__(sl)
+        self.layout = list(sl)
 
     def _spin(self, amount: str):
         """rotate the order of the programs"""
         a = int(amount)
         self.layout = self.layout[-a:] + self.layout[:-a]
+
+
+class DanceStr(DanceList):
+    def __init__(self, sl=STARTING_LAYOUT):
+        super().__init__()
+        self.layout = sl
 
     def _exchange(self, *args: str):
         """swap positions based on index"""
@@ -67,22 +73,21 @@ class DanceStr(Dance):
         self.layout = self.layout.translate(str.maketrans({a: b, b: a}))
 
 
-def part1(insts, n_times=1):
-    d = Dance()
-    for _ in range(n_times):
-        d.run(insts)
+def part1(insts, dance_class=Dance):
+    d = dance_class()
+    d.run(insts)
     return ''.join(d.layout)
 
 
-def part2(insts):
-    configs = _find_all_configs(insts)
+def part2(insts, dance_class=Dance):
+    configs = _find_all_configs(insts, dance_class)
     return configs[int(1e9) % len(configs)]
 
 
-def _find_all_configs(insts: List[str]) -> List[str]:
+def _find_all_configs(insts: List[str], dance_class) -> List[str]:
     """calculate all possible configs in cycle"""
     sl = STARTING_LAYOUT
-    d = Dance(sl)
+    d = dance_class(sl)
     res = [sl]
     while True:
         d.run(insts)
@@ -94,9 +99,12 @@ def _find_all_configs(insts: List[str]) -> List[str]:
 
 def __main():
     insts = first(read_file(16, 2017)).split(',')
-    with localtimer():
-        print(part1(insts))
-        print(part2(insts))
+    for dc in Dance, DanceList, DanceStr:
+        print(dc)
+        with localtimer():
+            print(part1(insts, dc))
+            print(part2(insts, dc))
+        print()
 
 
 if __name__ == '__main__':
