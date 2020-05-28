@@ -1,6 +1,7 @@
 import math
 from itertools import chain
 from textwrap import dedent
+from enum import Enum
 
 import pyaoc2019.utils as U
 from typing import List

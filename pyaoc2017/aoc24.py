@@ -1,4 +1,5 @@
-from collections import defaultdict
+from functools import lru_cache
+from itertools import count
 from operator import itemgetter
 from typing import NamedTuple, FrozenSet, Iterable, Callable
 
@@ -6,14 +7,17 @@ import pyaoc2019.utils as U
 
 __author__ = 'acushner'
 
+_id_counter = count()
+
 
 class Comp(NamedTuple):
     left: int
     right: int
+    id_: int  # this field is here to allow "duped" components in a set
 
     @classmethod
     def from_str(cls, s):
-        return cls(*map(int, s.split('/')))
+        return cls(*map(int, s.split('/')), next(_id_counter))
 
     @property
     def value(self):
@@ -23,36 +27,48 @@ class Comp(NamedTuple):
         return self[self[0] == value]
 
 
-class CompMap(defaultdict):
+class CompMap(dict):
+    def __missing__(self, key):
+        res = self[key] = set()
+        return res
+
     def add(self, comp: Comp):
         self[comp.left].add(comp)
         self[comp.right].add(comp)
 
     @classmethod
     def from_comps(cls, comps: Iterable[Comp]):
-        res = cls(set)
+        res = cls()
         U.exhaust(map(res.add, comps))
         return res
 
 
-def calc_longest_bridge(fname, maxkey: Callable, start: int = 0):
-    comps = map(Comp.from_str, U.read_file(fname, 2017))
-    comp_map = CompMap.from_comps(comps)
+class BridgeInfo(NamedTuple):
+    length: int
+    strength: int
 
-    def _helper(cur: int, already_used: FrozenSet[Comp], length=0):
-        matches = comp_map[cur] - already_used
 
-        if not matches:
+def calc_longest_bridge(comp_map: CompMap, maxkey: Callable) -> BridgeInfo:
+    @lru_cache(None)
+    def _helper(cur: int = 0, already_used: FrozenSet[Comp] = frozenset(), length=0):
+        available_comps = comp_map[cur] - already_used
+
+        if not available_comps:
             return length, sum(c.value for c in already_used)
 
-        return max((_helper(c.other(cur), already_used | {c}, length + 1) for c in matches), key=maxkey)
+        return max((_helper(c.other(cur), already_used | {c}, length + 1) for c in available_comps), key=maxkey)
 
-    return _helper(start, frozenset())
+    return BridgeInfo(*_helper())
 
 
 def __main():
-    print(calc_longest_bridge('24', maxkey=itemgetter(1)))
-    print(calc_longest_bridge('24', maxkey=U.identity))
+    strs = U.read_file(24, 2017)
+    comps = [Comp.from_str(s) for s in strs]
+    comp_map = CompMap.from_comps(comps)
+
+    with U.localtimer():
+        print(calc_longest_bridge(comp_map, maxkey=itemgetter(1)))
+        print(calc_longest_bridge(comp_map, maxkey=U.identity))
 
 
 if __name__ == '__main__':

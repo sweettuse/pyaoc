@@ -114,6 +114,9 @@ class Coord(NamedTuple):
     def __neg__(self):
         return Coord(-self.x, -self.y)
 
+    def __mul__(self, other):
+        return Coord(self.x * other, self.y * other)
+
     @property
     def manhattan(self):
         return abs(self.x) + abs(self.y)
