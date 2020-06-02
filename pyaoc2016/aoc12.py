@@ -7,6 +7,7 @@ from pyaoc2019.utils import read_file, localtimer
 
 
 def _get_val(func):
+    """decorator to convert either a value or a register into an int"""
     @wraps(func)
     def _wrapper(self, val_or_reg, *args):
         val = self.regs[val_or_reg] if val_or_reg.isalpha() else int(val_or_reg)
@@ -16,6 +17,7 @@ def _get_val(func):
 
 
 def _inc_pc(func):
+    """decorator to increment program counter"""
     @wraps(func)
     def _wrapper(self, *args):
         res = func(self, *args)
@@ -56,11 +58,11 @@ class Computer:
 
     @_get_val
     def jnz(self, val, offset):
-        """inc/dec program counter if val is non-zero"""
+        """inc/dec program counter by offset if val is non-zero"""
         self._pc += int(offset) if val else 1
 
     @property
-    @lru_cache(4)
+    @lru_cache(1)
     def _funcs(self):
         return {name: getattr(self, name) for name in dir(self) if not name.startswith('_')}
 
