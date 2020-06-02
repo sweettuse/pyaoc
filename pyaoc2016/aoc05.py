@@ -7,8 +7,6 @@ from cytoolz import take
 
 from pyaoc2019.utils import localtimer
 
-door_id = 'abc'
-
 __author__ = 'acushner'
 
 door_id = 'ffykfhsq'
