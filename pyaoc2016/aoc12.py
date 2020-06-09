@@ -1,13 +1,14 @@
 __author__ = 'acushner'
 
 from functools import lru_cache, wraps
-from typing import List
+from typing import List, NamedTuple, Any
 
 from pyaoc2019.utils import read_file, localtimer
 
 
-def _get_val(func):
+def _convert_val(func):
     """decorator to convert either a value or a register into an int"""
+
     @wraps(func)
     def _wrapper(self, val_or_reg, *args):
         val = self.regs[val_or_reg] if val_or_reg.isalpha() else int(val_or_reg)
@@ -18,6 +19,7 @@ def _get_val(func):
 
 def _inc_pc(func):
     """decorator to increment program counter"""
+
     @wraps(func)
     def _wrapper(self, *args):
         res = func(self, *args)
@@ -27,12 +29,22 @@ def _inc_pc(func):
     return _wrapper
 
 
+class Inst(NamedTuple):
+    fn: str
+    args: List[Any]
+
+    @classmethod
+    def from_str(cls, s):
+        fn, *args = s.split()
+        return cls(fn, args)
+
+
 class Computer:
     # TODO: talk about how, from last sprintly test, `length` could have been cribbed from used_comps
-    def __init__(self, insts: List[str], **overrides):
+    def __init__(self, inst_strs: List[str], **overrides):
         self.regs = self._init_regs(**overrides)
         self._pc = 0
-        self._insts = insts
+        self._insts = self._to_insts(inst_strs)
 
     @staticmethod
     def _init_regs(**overrides):
@@ -40,7 +52,11 @@ class Computer:
         regs.update(overrides)
         return regs
 
-    @_get_val
+    @staticmethod
+    def _to_insts(inst_strs: List[str]) -> List[Inst]:
+        return [Inst.from_str(s) for s in inst_strs]
+
+    @_convert_val
     @_inc_pc
     def cpy(self, val, reg):
         """copy val into reg"""
@@ -56,19 +72,18 @@ class Computer:
         """decrement reg by 1"""
         self.regs[reg] -= 1
 
-    @_get_val
+    @_convert_val
     def jnz(self, val, offset):
-        """inc/dec program counter by offset if val is non-zero"""
+        """jump non-zero: inc/dec program counter by offset if val is non-zero"""
         self._pc += int(offset) if val else 1
 
     @property
     @lru_cache(1)
     def _funcs(self):
-        return {name: getattr(self, name) for name in dir(self) if not name.startswith('_')}
+        return {name: getattr(self, name) for name in 'cpy inc dec jnz'.split()}
 
-    def _exec_inst(self, s):
-        fn, *args = s.split()
-        self._funcs[fn](*args)
+    def _exec_inst(self, inst: Inst):
+        self._funcs[inst.fn](*inst.args)
 
     def run(self):
         while 0 <= self._pc < len(self._insts):
