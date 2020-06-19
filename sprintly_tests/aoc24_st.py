@@ -50,13 +50,13 @@ def calc_strongest_bridge(comp_map: CompMap, max_key: Callable = lambda t: t[1])
     """
 
     @lru_cache(None)
-    def _helper(cur_no_pins: int = 0, used_components: FrozenSet[Comp] = frozenset(), length: int = 0):
+    def _helper(cur_no_pins: int = 0, used_components: FrozenSet[Comp] = frozenset()):
         available_connections = comp_map[cur_no_pins] - used_components
 
         if not available_connections:
-            return length, sum(c.strength for c in used_components)
+            return len(used_components), sum(c.strength for c in used_components)
 
-        return max((_helper(c.other(cur_no_pins), used_components | {c}, length + 1) for c in available_connections),
+        return max((_helper(c.other(cur_no_pins), used_components | {c}) for c in available_connections),
                    key=max_key)
 
     res = _helper()
@@ -66,7 +66,7 @@ def calc_strongest_bridge(comp_map: CompMap, max_key: Callable = lambda t: t[1])
 
 def __main():
     comps = [Comp.from_str(s) for s in read_file(24, 2017)]
-    comps = [Comp(0, 2), Comp(2, 2), Comp(2, 2)]
+    # comps = [Comp(0, 2), Comp(2, 2), Comp(2, 2)]
     cm = CompMap()
     for c in comps:
         cm.add(c)

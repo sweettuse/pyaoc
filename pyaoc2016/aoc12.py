@@ -40,7 +40,9 @@ class Inst(NamedTuple):
 
 
 class Computer:
-    # TODO: talk about how, from last sprintly test, `length` could have been cribbed from used_comps
+    # TODO: talk about how, from last sprintly test:
+    #  - `length` could have been cribbed from used_comps
+    #  - hash can be `id(self)`
     def __init__(self, inst_strs: List[str], **overrides):
         self.regs = self._init_regs(**overrides)
         self._pc = 0
@@ -77,20 +79,15 @@ class Computer:
         """jump non-zero: inc/dec program counter by offset if val is non-zero"""
         self._pc += int(offset) if val else 1
 
-    @property
-    @lru_cache(1)
-    def _funcs(self):
-        return {name: getattr(self, name) for name in 'cpy inc dec jnz'.split()}
-
     def _exec_inst(self, inst: Inst):
-        self._funcs[inst.fn](*inst.args)
+        getattr(self, inst.fn)(*inst.args)
 
     def run(self):
         while 0 <= self._pc < len(self._insts):
             self._exec_inst(self._insts[self._pc])
 
 
-def aoc11(insts: List[str], **overrides):
+def aoc12(insts: List[str], **overrides):
     comp = Computer(insts, **overrides)
     comp.run()
     return comp.regs['a']
@@ -99,9 +96,9 @@ def aoc11(insts: List[str], **overrides):
 def __main():
     insts = read_file(12, 2016)
     with localtimer():
-        print(aoc11(insts))
+        print(aoc12(insts))
     with localtimer():
-        print(aoc11(insts, c=1))
+        print(aoc12(insts, c=1))
 
 
 if __name__ == '__main__':
