@@ -1,9 +1,17 @@
-__author__ = 'acushner'
-
+from __future__ import annotations
 import string
 from copy import copy
 from functools import lru_cache
+from itertools import chain
 from typing import List, Iterator, Optional
+
+from more_itertools import flatten
+
+from cluegen import Datum
+
+__author__ = 'acushner'
+
+from pyaoc2019.utils import exhaust, localtimer
 
 s = '12432111'
 s = '1243'
@@ -41,48 +49,75 @@ def decode(s):
     return {''.join(map(num_char_map.get, r)) for r in res}
 
 
-# def decode(s):
-#     @lru_cache(None)
-#     def _helper(idx: int):
-#         if idx > len(s):
-#             return
-#         if idx == len(s):
-#             return int(s[idx])
-#
-#         res = []
-#         if (cur := int(s[idx: idx + 2])) <= 26:
-#             res.append(cur)
-#         res.append
+class Node(Datum):
+    chain: List[int]
+    children: Optional[List[Node]] = None
+
+    def __iadd__(self, other: int):
+        self.chain.append(other)
+        return self
+
+    def pop(self):
+        return self.chain.pop()
+
+    def last(self):
+        return self.chain[-1]
+
+    def _recurse(self, cur=None):
+        cur = (cur or []) + self.chain
+        if not self.children:
+            yield cur
+        else:
+            for c in self.children:
+                yield from c._recurse(cur)
+
+    def __iter__(self):
+        yield from self._recurse()
+
+    def _get_len(self):
+        if not self.children:
+            yield 1
+        else:
+            for c in self.children:
+                yield from c._get_len()
+
+    def __len__(self):
+        return sum(self._get_len())
+
+    @property
+    def strings(self):
+        return {''.join(map(num_char_map.get, v)) for v in self}
 
 
-# def decode(s):
-#     def _helper(ints: Iterator[int]) -> Optional[List[List[int]]]:
-#         res = [[], []]
-#         try:
-#             prev = next(ints)
-#         except StopIteration:
-#             return res
-#
-#         for cur in ints:
-#             comb = 10 * prev + cur
-#             print(comb)
-#             if comb <= 26:
-#                 res[1].append(([*res[0], comb], _helper(copy(ints))))
-#             res[0].append(prev)
-#             prev = cur
-#         res[0].append(prev)
-#         return res
-#
-#     ints = [int(i) for i in s]
-#     print(ints)
-#     return _helper(iter(ints))
+def decode2(s) -> Node:
+    """better solution"""
+    def _helper(ints: Iterator[int], n: Node):
+        for cur in ints:
+            prev = n.last()
+            if (comb := 10 * prev + cur) <= 26:
+                n.pop()
+                left, right = n.children = [Node([prev, cur]), Node([comb])]
+                _helper(copy(ints), left)
+                _helper(copy(ints), right)
+                break
+            else:
+                n += cur
+
+    it = iter([int(i) for i in s])
+    node = Node([next(it)])
+    _helper(it, node)
+    return node
 
 
 def __main():
-    res = decode('12342121')
-    print(len(res))
-    print(res)
-    pass
+    with localtimer():
+        res = decode2('12432111221121211222121122212')
+        # res = decode2('121212121212')
+    with localtimer():
+        print(len(res))
+    with localtimer():
+        print(len(res.strings))
+        # exhaust(map(print, sorted(res.strings)))
 
 
 if __name__ == '__main__':

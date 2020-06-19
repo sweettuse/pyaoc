@@ -8,3 +8,4 @@ sty
 toolz
 uvloop
 pillow
+git+https://github.com/sweettuse/cluegen.git
