@@ -50,8 +50,8 @@ def _add_to_dict(res: Dict, state: State, it: Iterator):
     res[StateVal(state, cur_val)] = Inst.from_iter(it)
 
 
-def parse_data(fn) -> Dict[StateVal, Inst]:
-    lines = iter(U.read_file(fn, 2017))
+def parse_data(filename) -> Dict[StateVal, Inst]:
+    lines = iter(U.read_file(filename, 2017))
     res = {}
     for l in lines:
         if l.startswith('In state'):

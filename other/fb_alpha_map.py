@@ -1,11 +1,8 @@
 from __future__ import annotations
+
 import string
 from copy import copy
-from functools import lru_cache
-from itertools import chain
 from typing import List, Iterator, Optional
-
-from more_itertools import flatten
 
 from cluegen import Datum
 
@@ -96,9 +93,9 @@ def decode2(s) -> Node:
             prev = n.last()
             if (comb := 10 * prev + cur) <= 26:
                 n.pop()
-                left, right = n.children = [Node([prev, cur]), Node([comb])]
-                _helper(copy(ints), left)
-                _helper(copy(ints), right)
+                n.children = [Node([comb]), Node([prev, cur])]
+                for child in n.children:
+                    _helper(copy(ints), child)
                 break
             else:
                 n += cur
@@ -112,12 +109,12 @@ def decode2(s) -> Node:
 def __main():
     with localtimer():
         res = decode2('12432111221121211222121122212')
-        # res = decode2('121212121212')
+        # res = decode2('1212')
     with localtimer():
         print(len(res))
     with localtimer():
         print(len(res.strings))
-        # exhaust(map(print, sorted(res.strings)))
+        # exhaust(print, sorted(res.strings))
 
 
 if __name__ == '__main__':

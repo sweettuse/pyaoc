@@ -91,6 +91,7 @@ def with_total_ore(filename, total=1e12):
     start_hint = _calc_start_hint(filename, total)
     for t in count(start_hint):
         if Compounds(filename).cost(t) > total:
+            print(t - start_hint)
             return t - 1
 
 
@@ -105,7 +106,10 @@ def parse_file(name: Union[int, str] = 14) -> CompoundMap:
 
 
 def __main():
-    print(Compounds('14').cost())
+    c = Compounds('14')
+    print(c.cost())
+    print(c.amount_needed)
+    print(c._bank)
     print(with_total_ore(14))
 
 

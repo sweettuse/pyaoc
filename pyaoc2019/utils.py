@@ -9,7 +9,7 @@ from pathlib import Path
 
 __author__ = 'acushner'
 
-from typing import Any, Iterable, NamedTuple
+from typing import Any, Iterable, NamedTuple, Callable
 
 from pyaoc2019.colors.tile_utils import RC
 
@@ -152,8 +152,10 @@ class Direction(Enum):
         return self.rotated(0).rotated(0)
 
 
-def exhaust(iterable):
-    deque(iterable, maxlen=0)
+def exhaust(iterable_or_fn, *args):
+    if args:
+        iterable_or_fn = map(iterable_or_fn, *args)
+    deque(iterable_or_fn, maxlen=0)
 
 
 class SliceableDeque(deque):

@@ -1,155 +1,198 @@
-import asyncio
-from asyncio import Queue, QueueEmpty
-from collections import defaultdict, Counter
+from collections import defaultdict
+from concurrent.futures.thread import ThreadPoolExecutor
 from contextlib import suppress
-from typing import NamedTuple, List
-
-from cytoolz.itertoolz import last
-import uvloop
-import pyaoc2019.utils as U
-
-uvloop.install()
+from io import BytesIO
+from queue import Queue
+from typing import List, NamedTuple, Tuple, Union
 
 __author__ = 'acushner'
 
+from pyaoc2019.utils import read_file
 
-class Inst(NamedTuple):
-    inst: str
-    reg: str
-    args: List[int]
+
+def _make_int_if_possible(v):
+    with suppress(ValueError):
+        return int(v)
+    return v
+
+
+class Command(NamedTuple):
+    cmd: str
+    args: Tuple[Union[int, str], ...]
 
     @classmethod
-    def from_str(cls, s):
-        inst, reg, *args = s.split()
-        with suppress(ValueError):
-            args = [int(a) for a in args]
-        return cls(inst, reg, args)
+    def from_str(cls, s: str):
+        cmd, *args = s.split()
+        return cls(cmd, tuple(map(_make_int_if_possible, args)))
 
 
-class Result(Exception):
-    """stores result of calculation"""
-
-
-class Registers:
-    def __init__(self, name, instructions, in_q: Queue, out_q: Queue, starting_vals):
-        self.in_q = in_q
-        self.out_q = out_q
-        self._name = name
-        self._insts = instructions
-        self._starting_vals = starting_vals
-
+class Program:
+    def __init__(self, commands: List[Command]):
         self._regs = defaultdict(int)
         self._pc = 0
-        self._max_pc = 0
-        self._inst_counts = Counter()
-        self._send_count = 0
-        if starting_vals:
-            self._regs['p'] = last(starting_vals)
+        self._cmds = commands
+        self._last_sound = None
+        self.last_recovered = None
 
-    def __setitem__(self, key, value):
-        self._regs[key] = value
+        self._done = False
 
     def __getitem__(self, item):
         if isinstance(item, str):
             return self._regs[item]
         return item
 
-    @classmethod
-    def from_strs(cls, name, strs: List[str], in_q, out_q, starts):
-        return cls(name, [Inst.from_str(s) for s in strs], in_q, out_q, starts)
+    def __setitem__(self, key, value):
+        self._regs[key] = value
 
-    async def _run_inst(self, inst: Inst):
-        await getattr(self, inst.inst)(inst.reg, *map(self.__getitem__, inst.args))
+    @property
+    def _is_valid(self):
+        return not self._done and 0 <= self._pc < len(self._cmds)
 
-    async def run(self):
-        for v in self._starting_vals:
-            await self.snd(v)
-        # while True:
-        for i in range(1000000):
-            inst = self._insts[self._pc]
-            self._inst_counts[self._pc] += 1
-            if not i % 10000:
-                print(i, self._name, f'{self._pc}/{self._max_pc}', inst, self.in_q.qsize(),
-                      self._inst_counts.most_common(6), self._regs)
-            await self._run_inst(inst)
+    def run(self):
+        while self._is_valid:
+            cmd, args = self._cmds[self._pc]
+            getattr(self, cmd)(*args)
             self._pc += 1
-            self._max_pc = max(self._pc, self._max_pc)
 
-    async def set(self, reg, val: int):
-        self[reg] = val
+    def snd(self, x):
+        """play sound with freq x"""
+        x = self._last_sound = self[x]
+        return x
 
-    async def add(self, reg, val):
-        self[reg] += val
+    def set(self, x, y):
+        self[x] = self[y]
 
-    async def mul(self, reg, val):
-        self[reg] *= val
+    def add(self, x, y):
+        self[x] += self[y]
 
-    async def mod(self, reg, val):
-        self[reg] %= val
+    def mul(self, x, y):
+        self[x] *= self[y]
 
-    async def jgz(self, reg, val):
-        try:
-            reg_val = int(reg)
-        except Exception:
-            reg_val = self[reg]
-        if reg_val > 0:
-            self._pc += val - 1
+    def mod(self, x, y):
+        self[x] %= self[y]
 
-    async def snd(self, reg):
-        """send"""
-        self._send_count += 1
-        await self.out_q.put(self[reg])
+    def rcv(self, x):
+        if self[x]:
+            self.last_recovered = self._last_sound
+            self._done = True
 
-    async def rcv(self, reg):
-        """receive"""
-        v = await asyncio.wait_for(self.in_q.get(), 3)
-        self[reg] = v
+    def jgz(self, x, y):
+        if self[x] > 0:
+            self._pc += self[y] - 1
 
 
-class RegA(Registers):
-    def __init__(self, name, instructions, in_q: Queue, out_q: Queue, starting_vals):
-        super().__init__(name, instructions, in_q, out_q, starting_vals)
-        self._sounds = []
-        self._recovered_sounds = []
+test = """set a 1
+add a 2
+mul a a
+mod a 5
+snd a
+set a 0
+rcv a
+jgz a -1
+set a 1
+jgz a -2"""
 
-    @classmethod
-    def from_strs(cls, name, strs: List[str], in_q=Queue(), out_q=Queue(), starts=[]):
-        return super().from_strs(name, strs, in_q, out_q, starts)
-
-    async def snd(self, reg):
-        self._sounds.append(self[reg])
-
-    async def rcv(self, reg):
-        if self[reg]:
-            self._recovered_sounds.append(last(self._sounds))
-            raise Result(last(self._recovered_sounds))
+test_commands = [Command.from_str(s) for s in test.splitlines()]
 
 
-async def aoc18_a():
-    insts = U.read_file(18, 2017)
-    regs = RegA.from_strs('regA', insts)
-    try:
-        await regs.run()
-    except Result as r:
-        return r.args[0]
+def parse_data():
+    return [Command.from_str(s) for s in read_file(18, 2017)]
 
 
-async def aoc18_b():
-    fn = 18
-    q01 = Queue(), Queue()
-    r0 = Registers.from_strs('reg0', U.read_file(fn, 2017), *q01, [1, 2, 0])
-    r1 = Registers.from_strs('reg1', U.read_file(fn, 2017), *reversed(q01), [1, 2, 1])
-    try:
-        await asyncio.gather(r0.run(), r1.run())
-    except asyncio.TimeoutError:
-        print('we are done')
-    print(r0._send_count, r0._regs)
-    print(r1._send_count, r1._regs)
+def part1():
+    prg = Program(parse_data())
+    prg.run()
+    return prg.last_recovered
+
+
+# ======================================================================================================================
+# ======================================================================================================================
+class Manager:
+    def __init__(self):
+        self._qs: Tuple[Queue, Queue] = Queue(), Queue()
+
+    def send(self, pid, val):
+        self._qs[pid ^ 1].put(val)
+
+    def recv(self, pid):
+        return self._qs[pid].get(timeout=.2)
+
+
+class P2(Program):
+    mgr = Manager()
+
+    def __init__(self, commands: List[Command], prog_id):
+        super().__init__(commands)
+        self._regs['p'] = self._pid = prog_id
+        self.num_sent = 0
+
+    def snd(self, x):
+        self.num_sent += 1
+        self.mgr.send(self._pid, self[x])
+
+    def rcv(self, x):
+        self[x] = self.mgr.recv(self._pid)
+
+
+test2 = """snd 1
+snd 2
+snd p
+rcv a
+rcv b
+rcv c
+rcv d"""
+
+test2_commands = [Command.from_str(s) for s in test2.splitlines()]
+
+
+def part2():
+    commands = parse_data()
+    with ThreadPoolExecutor(2) as pool:
+        p0, p1 = P2(commands, 0), P2(commands, 1)
+        pool.submit(p0.run)
+        pool.submit(p1.run)
+    return p1.num_sent
+
+
+# ======================================================================================================================
+# PLAY
+# ======================================================================================================================
+
+def play():
+    class Play(Program):
+        def __init__(self, commands: List[Command]):
+            super().__init__(commands)
+            self.sounds = []
+
+        def snd(self, x):
+            self.sounds.append(res := super().snd(x))
+            return res
+
+    p = Play(parse_data())
+    p.run()
+    print(p.sounds)
+
+    import simpleaudio as sa
+    from tones import SAWTOOTH_WAVE, SINE_WAVE, SQUARE_WAVE, TRIANGLE_WAVE
+    from tones.mixer import Mixer
+    mixer = Mixer(amplitude=.3)
+    name = 'track'
+    mixer.create_track(name, SAWTOOTH_WAVE, vibrato_frequency=None, vibrato_variance=3)
+    for s in p.sounds:
+        mixer.add_tone(name, s / 8, duration=.1)
+
+    bio = BytesIO()
+    mixer.write_wav(bio)
+    bio.seek(0)
+
+    wo = sa.WaveObject.from_wave_file(bio)
+    wo.play().wait_done()
 
 
 def __main():
-    with U.localtimer():
-        print(asyncio.run(aoc18_b()))
+    print(part1())
+    print(part2())
+    # play()
 
 
 if __name__ == '__main__':
