@@ -14,10 +14,8 @@ def parts1and2(mult=1):
     scores = defaultdict(int)
     for n in range(3, mult * last_marble + 1):
         if not n % 23:
-            player = n % num_players
             circle.rotate(7)
             scores[n % num_players] += n + circle.popleft()
-            'edge case'
         else:
             circle.rotate(-2)
             circle.appendleft(n)
@@ -27,7 +25,6 @@ def parts1and2(mult=1):
 def __main():
     print(parts1and2())
     print(parts1and2(100))
-    pass
 
 
 if __name__ == '__main__':
