@@ -178,7 +178,7 @@ class SliceableDeque(deque):
         self.rotate(-offset)
         for _ in range(len(vals)):
             self.popleft()
-        self.extendleft(value)
+        self.extendleft(reversed(value))
         self.rotate(offset)
 
 

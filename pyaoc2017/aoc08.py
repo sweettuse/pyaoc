@@ -17,14 +17,14 @@ class Rule(NamedTuple):
     @classmethod
     def from_str(cls, s):
         reg, action, val, _, cond_reg, condition, cond_val = s.split()
-        action = partial(actions[action], val)
+        action = partial(actions[action], int(val))
         cond = lambda _val: eval(f'{_val} {condition} {cond_val}')
         return cls(reg, action, cond_reg, cond)
 
 
 actions = dict(
-    inc=lambda rule_val, reg_val: reg_val + int(rule_val),
-    dec=lambda rule_val, reg_val: reg_val - int(rule_val),
+    inc=lambda rule_val, reg_val: reg_val + rule_val,
+    dec=lambda rule_val, reg_val: reg_val - rule_val,
 )
 
 
@@ -41,7 +41,7 @@ class Registers:
 
 def aoc08(rules: List[Rule]):
     registers = Registers()
-    running_max = reduce(max, map(registers.process_rule, rules))
+    running_max = max(*map(registers.process_rule, rules))
     return max(registers.data.values()), running_max
 
 

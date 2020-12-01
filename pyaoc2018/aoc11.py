@@ -1,7 +1,8 @@
 __author__ = 'acushner'
 
 from concurrent.futures.process import ProcessPoolExecutor
-from itertools import product, accumulate
+from functools import partial
+from itertools import product, accumulate, starmap
 from operator import itemgetter
 from typing import List
 
@@ -44,11 +45,12 @@ def _part2_helper(r, c, grid):
 
 
 def part2():
+    """bad, slow, naive implementation"""
     grid = _create_power_grid()
     with ProcessPoolExecutor() as pool:
         futures = [pool.submit(_part2_helper, r, c, grid) for r, c in product(range(size), range(size))]
 
-    res = dict(f.result() for f in futures)
+    res = dict(f.result() for f in futures if not f.exception())
     print(res)
     return first(max(res.items(), key=itemgetter(1)))
 
@@ -77,7 +79,6 @@ def _part_2_calc_area(r, c, g_accum):
     return res
 
 
-# size = 4
 def part2_smart():
     """
     take an input grid like
@@ -90,7 +91,7 @@ def part2_smart():
 
     to find out what that bottom right quadrant square is ((5, 6), (8, 9))
     the simple calc for this is to add up those numbers
-    5 + 6 + 7 + 8 -> 28
+    5 + 6 + 8 + 9 -> 28
 
     but, for larger squares, this can be very time consuming. so,
     first, transform the grid into one cumulatively summed both horizontally and vertically:
@@ -114,8 +115,8 @@ def part2_smart():
 
     45 - 6 - 12 -> 27
 
-    the reason is is because the accumulated numbers in the upper left square get counted twice
-    add one copy back in...
+    the reason is is because the accumulated numbers in the upper left square get counted twice.
+    add one copy of the duplicated summed square back in...
 
     [
        [ +1, |  3,  -6],
@@ -138,22 +139,23 @@ def part2_smart():
        [12, -27, | +45],
     ]
 
-    45 - 27 - 21 + 12 -> 9, same as the single cell in the original input grid
+    45 - 21 - 27 + 12 -> 9, same as the single cell in the original input grid
 
     essentially, i just reinvented this algo from scratch: https://en.wikipedia.org/wiki/Summed-area_table
     """
     grid = _create_power_grid()
-    h_accum = [list(accumulate(r)) for r in grid]
-    g_accum = list(zip(*(list(accumulate(c)) for c in zip(*h_accum))))
+    h_accum = map(accumulate, grid)
+    g_accum = list(zip(*map(accumulate, zip(*h_accum))))
 
-    res = dict(_part_2_calc_area(r, c, g_accum) for r, c in product(range(size), range(size)))
-    (x, y), (_, diag) = max(res.items(), key=itemgetter(1))
+    res = (_part_2_calc_area(r, c, g_accum) for r, c in product(range(size), range(size)))
+    (x, y), (_, diag) = max(res, key=itemgetter(1))
     return f'{x},{y},{diag}'
 
 
 def __main():
     print(part1())
-    print(part2_smart())
+    with localtimer():
+        print(part2_smart())
 
 
 if __name__ == '__main__':

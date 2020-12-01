@@ -1,4 +1,4 @@
-from itertools import product, permutations
+from itertools import product, permutations, combinations
 
 from cytoolz.itertoolz import first
 
@@ -28,6 +28,19 @@ def _calc_equal_div(s):
             return div
 
 
+from itertools import combinations
+
+
+def part2_sara():
+    answer = 0
+
+    for line in U.read_file(2, 2017):
+        arr = [int(z) for z in line.split("\t")]
+        arr.sort(reverse=True)
+        answer += sum(int(c[0] / c[1]) for c in combinations(arr, 2) if (c[0] % c[1]) == 0)
+    print(answer)
+
+
 def aoc02_b(df):
     return sum(map(_calc_equal_div, to_sets(df)))
 
@@ -36,6 +49,7 @@ def __main():
     df = read_data()
     print(aoc02_a(df))
     print(aoc02_b(df))
+    part2_sara()
 
 
 if __name__ == '__main__':

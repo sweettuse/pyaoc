@@ -13,7 +13,7 @@ def apply_rotations(data: Iterable[int], input_lens: List[int], skip=0):
     d = U.SliceableDeque(data)
     total_rotation = 0
     for skip, il in enumerate(input_lens, skip):
-        d[:il] = d[:il]
+        d[:il] = list(reversed(d[:il]))
         cur_skip = -skip - il
         total_rotation += cur_skip
         d.rotate(cur_skip)

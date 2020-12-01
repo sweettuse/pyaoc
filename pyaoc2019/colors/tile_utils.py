@@ -1,6 +1,6 @@
 from collections import defaultdict, Counter
 from contextlib import suppress
-from functools import lru_cache
+from functools import lru_cache, total_ordering
 from itertools import islice, cycle, groupby, product
 from types import SimpleNamespace
 from typing import List, NamedTuple, Tuple, Dict, Optional, Callable, Iterable, Set, Union, Any
@@ -16,6 +16,7 @@ default_color = Colors.OFF
 Shape = Tuple[int, int]
 
 
+@total_ordering
 class RC(NamedTuple):
     """represent row/column coords"""
     r: int
@@ -37,16 +38,16 @@ class RC(NamedTuple):
         return self.r * self.c
 
     def __add__(self, other) -> 'RC':
-        return RC(self[0] + other[0], self[1] + other[1])
+        return type(self)(self[0] + other[0], self[1] + other[1])
 
     def __sub__(self, other) -> 'RC':
-        return RC(self[0] - other[0], self[1] - other[1])
+        return type(self)(self[0] - other[0], self[1] - other[1])
 
     def __floordiv__(self, other) -> 'RC':
-        return RC(self[0] // other[0], self[1] // other[1])
+        return type(self)(self[0] // other[0], self[1] // other[1])
 
     def __mod__(self, other) -> 'RC':
-        return RC(self[0] % other[0], self[1] % other[1])
+        return type(self)(self[0] % other[0], self[1] % other[1])
 
     def __lt__(self, other):
         return self[0] < other[0] and self[1] < other[1]
@@ -61,7 +62,7 @@ class RC(NamedTuple):
         return self // other, self % other
 
     def __neg__(self):
-        return RC(-self[0], -self[1])
+        return type(self)(-self[0], -self[1])
 
 
 class TileInfo(NamedTuple):

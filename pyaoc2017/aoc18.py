@@ -179,7 +179,7 @@ def play():
     name = 'track'
     mixer.create_track(name, SAWTOOTH_WAVE, vibrato_frequency=None, vibrato_variance=3)
     for s in p.sounds:
-        mixer.add_tone(name, s / 8, duration=.1)
+        mixer.add_tone(name, s / 3, duration=.1)
 
     bio = BytesIO()
     mixer.write_wav(bio)
@@ -190,9 +190,9 @@ def play():
 
 
 def __main():
-    print(part1())
-    print(part2())
-    # play()
+    # print(part1())
+    # print(part2())
+    play()
 
 
 if __name__ == '__main__':

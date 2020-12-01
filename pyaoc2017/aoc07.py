@@ -13,6 +13,15 @@ __author__ = 'acushner'
 class ResultException(Exception):
     """contains result"""
 
+class Fuckup(str):
+    def __init__(self, x):
+        self.x = x
+
+    def __str__(self):
+        return self.x
+
+
+Fuck
 
 class ProgInfo(NamedTuple):
     name: str
@@ -21,13 +30,15 @@ class ProgInfo(NamedTuple):
 
     @classmethod
     def from_str(cls, s):
+
+        """lhrml (164) -> ecblhee, sdjshz"""
         l, *r = s.split(' -> ')
         name, weight = l.split()
         if r:
             fs = frozenset(first(r).split(', '))
         else:
             fs = frozenset()
-        return cls(name, eval(weight), fs)
+        return cls(name, int(weight.replace('(').replace(')')), fs)
 
     def calc_total_weight(self, data):
         weights = {c: data[c].calc_total_weight(data) for c in self.children}
