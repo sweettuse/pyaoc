@@ -1,4 +1,4 @@
-from itertools import combinations
+from itertools import combinations, product
 
 from pyaoc2019.utils import read_file, timer
 
@@ -21,15 +21,18 @@ def part2():
 
 
 def slowp1():
-    for x, y in combinations(data, 2):
-        if x + y == 2020:
-            return x * y
+    for x in data:
+        for y in data:
+            if x + y == 2020:
+                return x * y
 
 
 def slowp2():
-    for x, y, z in combinations(data, 3):
-        if x + y + z == 2020:
-            return x * y * z
+    for x in data:
+        for y in data:
+            for z in data:
+                if x + y + z == 2020:
+                    return x * y * z
 
 
 @timer
@@ -40,10 +43,10 @@ def slow():
 
 @timer
 def __main():
-    return slow()
     print(part1())
     print(part2())
 
 
 if __name__ == '__main__':
+    slow()
     __main()
