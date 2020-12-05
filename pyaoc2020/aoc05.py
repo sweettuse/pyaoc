@@ -1,5 +1,3 @@
-from more_itertools import first
-
 from pyaoc2019.utils import read_file, timer
 
 __author__ = 'acushner'
@@ -21,7 +19,7 @@ def part1():
 def part2():
     min_seat, max_seat = min(data), max(data)
     valid_nums = set(range(min_seat + 8, max_seat - 7))
-    return first(valid_nums - data)
+    return (valid_nums - data).pop()
 
 
 @timer
