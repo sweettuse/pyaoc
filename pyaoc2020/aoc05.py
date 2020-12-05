@@ -19,8 +19,8 @@ def part1():
 
 
 def part2():
-    min_row, max_row = min(data), max(data)
-    valid_nums = set(range(min_row + 8, max_row - 7))
+    min_seat, max_seat = min(data), max(data)
+    valid_nums = set(range(min_seat + 8, max_seat - 7))
     return first(valid_nums - data)
 
 
