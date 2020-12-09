@@ -2,12 +2,14 @@ from pyaoc2019.utils import read_file, timer
 
 __author__ = 'acushner'
 
-window = 25
-data = [int(v) for v in read_file(9, 2020)]
+# window, data = 5, [int(v) for v in read_file('09.test', 2020)]
+# window, data = 25, [int(v) for v in read_file('09.pat', 2020)]
+window, data = 25, [int(v) for v in read_file(9, 2020)]
+print(min(data), max(data))
 
 
 def _is_match(pool, target):
-    return any(target - p in pool for p in pool)
+    return any((res := target - p) in pool and res != p for p in pool)
 
 
 def part1():
@@ -38,7 +40,8 @@ def __main():
     invalid = part1()
     print(invalid)
     print(part2(invalid))
+    return invalid
 
 
 if __name__ == '__main__':
-    __main()
+    inv = __main()
