@@ -47,11 +47,9 @@ def part1():
         deck = f(deck, *args)
     return deck.index(2019)
 
+
 def part2():
-    deck = deque(range(119315717514047))
-    for f, *args in parse_data('22.test'):
-        deck = f(deck, *args)
-    print(len(deck))
+    pass
 
 
 @timer

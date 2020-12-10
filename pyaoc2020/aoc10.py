@@ -1,3 +1,4 @@
+from collections import Counter
 from functools import lru_cache
 
 from pyaoc2019.utils import read_file, timer
@@ -11,8 +12,8 @@ data = [data[0] + 3] + data + [0]
 
 
 def part1():
-    diffs = [v1 - v2 for v1, v2 in zip(data, data[1:])]
-    return sum(d == 1 for d in diffs) * sum(d == 3 for d in diffs)
+    c = Counter(v1 - v2 for v1, v2 in zip(data, data[1:]))
+    return c[1] * c[3]
 
 
 def part2():
@@ -22,12 +23,11 @@ def part2():
         return [cur for cur in range(idx - 4, idx)
                 if cur >= 0 and conns[cur] >= conns[idx] - 3]
 
-    @lru_cache
+    @lru_cache(None)
     def _num_sub_conns(idx=len(conns) - 1):
         if idx <= 1:
             return 1
-        directs = _direct_conns(idx)
-        return sum(map(_num_sub_conns, directs))
+        return sum(map(_num_sub_conns, _direct_conns(idx)))
 
     return _num_sub_conns()
 
