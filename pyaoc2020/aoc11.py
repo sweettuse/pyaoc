@@ -35,8 +35,8 @@ def part1():
         return sum(board.get(rc + offset) == '#' for offset in surrounding)
 
     def _new_state(rc, board):
-        occupied = _calc_occupied(rc, board)
         res = state = board[rc]
+        occupied = _calc_occupied(rc, board)
 
         if state == 'L' and occupied == 0:
             res = '#'
@@ -51,14 +51,14 @@ def part1():
 def part2():
     data = parse_map(11, include_floor=True)
 
-    def _find_first_visible_seats(rc, board):
+    def _find_first_visible_seats(rc):
         res = set()
 
         for offset in surrounding:
             cur = rc + offset
 
             while True:
-                if (state := board.get(cur)) is None:
+                if (state := data.get(cur)) is None:
                     break
                 elif state in set('L#'):
                     res.add(cur)
@@ -67,17 +67,15 @@ def part2():
 
         return res
 
-    visible_map = {rc: _find_first_visible_seats(rc, data)
-                   for rc, v in data.items()}
-
+    visible_map = {rc: _find_first_visible_seats(rc) for rc in data}
     data = {rc: val for rc, val in data.items() if val != '.'}
 
     def _calc_occupied(board, visible):
         return sum(board[rc] == '#' for rc in visible)
 
     def _new_state(rc, board):
-        occupied = _calc_occupied(board, visible_map[rc])
         res = state = board[rc]
+        occupied = _calc_occupied(board, visible_map[rc])
 
         if state == 'L' and occupied == 0:
             res = '#'
