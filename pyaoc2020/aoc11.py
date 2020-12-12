@@ -20,9 +20,7 @@ def parse_map(fname=11, include_floor=False):
 def _find_equilibrium(data, new_state):
     cur, prev = data, None
 
-    while True:
-        if cur == prev:
-            break
+    while cur != prev:
         prev, cur = cur, {rc: new_state(rc, cur) for rc in cur}
 
     return sum(v == '#' for v in cur.values())
