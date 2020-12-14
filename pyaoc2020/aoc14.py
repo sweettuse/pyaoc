@@ -30,18 +30,18 @@ def _to_bin(val):
 def part1():
     mem = {}
     for mask, addr, val in parse_data():
-        masked_val = [m or v for m, v in zip(mask, _to_bin(val))]
-        mem[addr] = int(''.join(masked_val), 2)
+        masked_val = ''.join(m or v for m, v in zip(mask, _to_bin(val)))
+        mem[addr] = int(masked_val, 2)
     return sum(mem.values())
 
 
 # ======================================================================================================================
 
-def _calc_floating(val):
-    repeat = val.count('X')
-    val = val.replace('X', '{}')
+def _calc_floating(addr):
+    repeat = addr.count('X')
+    addr = addr.replace('X', '{}')
     for vals in product((0, 1), repeat=repeat):
-        yield int(val.format(*vals), 2)
+        yield int(addr.format(*vals), 2)
 
 
 def part2():
