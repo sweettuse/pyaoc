@@ -1,3 +1,4 @@
+import json
 from itertools import product
 
 from cytoolz import memoize
@@ -14,10 +15,9 @@ def parse_data(fname=14, part_num=1):
 
     for inst, _, val in map(str.split, read_file(fname, 2020)):
         if inst.startswith('mask'):
+            mask = val
             if part_num == 1:
                 mask = [None if c == 'X' else c for c in val]
-            else:
-                mask = val
         else:
             addr, val = map(int, (inst[4:].replace(']', ''), val))
             yield mask, addr, val
@@ -47,8 +47,8 @@ def _calc_floating(addr):
 def part2():
     mem = {}
     for mask, addr, val in parse_data(part_num=2):
-        bin_addr = _to_bin(addr)
-        masked_addr = ''.join(a if m == '0' else m for a, m in zip(bin_addr, mask))
+        masked_addr = ''.join(a if m == '0' else m
+                              for a, m in zip(_to_bin(addr), mask))
 
         if 'X' not in mask:
             mem[int(masked_addr, 2)] = val

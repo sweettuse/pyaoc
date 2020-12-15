@@ -20,8 +20,8 @@ def part2():
     conns = list(reversed(data))
 
     def _direct_conns(idx):
-        return [cur for cur in range(idx - 4, idx)
-                if cur >= 0 and conns[cur] >= conns[idx] - 3]
+        return (cur for cur in range(idx - 4, idx)
+                if cur >= 0 and conns[cur] >= conns[idx] - 3)
 
     @lru_cache(None)
     def _num_sub_conns(idx=len(conns) - 1):

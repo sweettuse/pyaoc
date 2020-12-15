@@ -54,9 +54,6 @@ def part2_brute_smartish(target):
                 return min(rng) + max(rng)
 
 
-fail_window = 4
-fail = [25, 24, 3, 1, 2, ]
-
 @timer
 def part2_cumsum(target):
     """using cum sum"""
