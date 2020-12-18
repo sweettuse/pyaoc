@@ -14,7 +14,7 @@ class Coord(NamedTuple):
     w: int = 0
 
     def __add__(self, other):
-        return Coord(*(v1 + v2 for v1, v2 in zip(self, other)))
+        return Coord(*map(sum, zip(self, other)))
 
 
 def parse_data(fname=17):

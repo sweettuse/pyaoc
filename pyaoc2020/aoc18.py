@@ -34,7 +34,7 @@ def _parse_expr(tokens: Iterator[Any]):
         elif t == '(':
             vals.append(_parse_expr(tokens))
         elif t == ')':
-            return sum(vals)
+            break
         else:
             op = op_map[t]
     if op:
@@ -59,7 +59,7 @@ class MyInt(int):
     i then switch the the operators around on the input string so that, in conjunction with `eval`,
     a call to `*` will have the higher precedence but will really call `+` and vice versa
 
-    note: `__truediv__` implements the extension for part 1
+    note: `__truediv__` implements the extension needed to solve for part 1
     """
 
     def __add__(self, other):
