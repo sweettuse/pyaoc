@@ -17,21 +17,25 @@ def _play_game(nums=nums):
             res = prev_i - spoken[prev_num]
 
         spoken[prev_num] = prev_i
-        yield i, res
+        yield res
         prev_i, prev_num = i, res
 
 
 def part1and2(target_idx=2020):
     for _, res in zip(range(target_idx), _play_game()):
         pass
-    return res[1]
-
+    return res
 
 
 @timer
 def __main():
     print(part1and2())
     print(part1and2(30000000))
+
+
+# 211
+# 2159626
+# '__main' took 11.895331928 seconds
 
 
 if __name__ == '__main__':

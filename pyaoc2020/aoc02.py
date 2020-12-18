@@ -44,5 +44,10 @@ def __main():
     print(part2())
 
 
+# 467
+# 441
+# '__main' took 0.0013512219999999991 seconds
+
+
 if __name__ == '__main__':
     __main()
