@@ -73,28 +73,23 @@ def part2(rules, strs):
     for idx in 8, 11:
         rules[idx] = _create_expanded_rule(idx, max_len)
 
-    def _process_lazy(pattern, offset):
+    def _process_all(pattern, offset):
         p, *rest = pattern
         for cur_valid, cur_offset in _is_valid(rules[p], s, offset):
             if cur_valid:
                 if not rest:
                     yield cur_valid, cur_offset
                 else:
-                    yield from _process_lazy(rest, cur_offset)
-
-        yield False, -1
+                    yield from _process_all(rest, cur_offset)
 
     def _is_valid(r: Rule, s: str, offset: int):
         """holy crap, using suppress(IndexError) instead of try/except adds 9 seconds! (23 -> 32)"""
-        try:
-            for pattern in sorted(r.matches, key=len):
-                if isinstance(pattern, str):
+        for pattern in sorted(r.matches, key=len):
+            if isinstance(pattern, str):
+                if offset < len(s):
                     yield s[offset] == pattern, offset + 1
-                    break
-
-                yield from _process_lazy(pattern, offset)
-        except IndexError:
-            pass
+            else:
+                yield from _process_all(pattern, offset)
 
     r = rules[0]
     total = 0

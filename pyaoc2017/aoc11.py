@@ -11,7 +11,7 @@ from pyaoc2019.utils import Coord
 __author__ = 'acushner'
 
 
-class Offset(Enum):
+class HexOffset(Enum):
     n = Coord(0, 1)
     ne = Coord(1, 0)
     se = Coord(1, -1)
@@ -21,7 +21,7 @@ class Offset(Enum):
 
 
 def _get_offsets(s: str):
-    return (Offset[d].value for d in s.split(','))
+    return (HexOffset[d].value for d in s.split(','))
 
 
 def calc_final_dist(s: str):
