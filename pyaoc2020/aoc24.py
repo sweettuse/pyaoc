@@ -44,9 +44,9 @@ def part2():
     offsets = [ho.value for ho in HexOffset]
 
     def _update():
-        num_living_neighbors = Counter(t + offset for t in black for offset in offsets)
-        white_to_black = {t for t, num_neighbs in num_living_neighbors.items() if num_neighbs == 2}
-        black_to_white = {t for t in black if (num_neighbs := num_living_neighbors[t]) == 0 or num_neighbs > 2}
+        num_black_neighbors = Counter(t + offset for t in black for offset in offsets)
+        white_to_black = {t for t, num_neighbs in num_black_neighbors.items() if num_neighbs == 2}
+        black_to_white = {t for t in black if (num_neighbs := num_black_neighbors[t]) == 0 or num_neighbs > 2}
         return (black | white_to_black) - black_to_white
 
     for _ in range(100):
@@ -58,6 +58,11 @@ def part2():
 def __main():
     print(part1())
     print(part2())
+
+
+# 373
+# 3917
+# '__main' took 0.908506361 seconds
 
 
 if __name__ == '__main__':

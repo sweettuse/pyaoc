@@ -13,6 +13,7 @@ def _is_match(pool, target):
     return any((res := target - p) in pool and res != p for p in pool)
 
 
+@timer
 def part1():
     pool = set(data[:window])
     for idx, v in enumerate(data[window:], window):

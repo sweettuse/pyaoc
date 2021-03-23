@@ -1,14 +1,31 @@
 from collections import defaultdict
+from dataclasses import dataclass
+from enum import Enum
 from itertools import starmap, combinations, permutations, product
 from math import prod
-from typing import List, NamedTuple, Dict
+from typing import List, NamedTuple, Dict, Set, Tuple
 
 from cytoolz import memoize
 from more_itertools import first
 
+from pyaoc2019.aoc13 import cached_property
 from pyaoc2019.utils import read_file, timer, exhaust, Coord
 
 __author__ = 'acushner'
+
+
+class Dir(Enum):
+    n = Coord(0, 1)
+    e = Coord(1, 0)
+    s = Coord(0, -1)
+    w = Coord(-1, 0)
+
+    def from_offset(self, offset: int):
+        return rot_map[(rot_map[self] + offset) % 4]
+
+
+rot_map = dict(zip(Dir, range(4)))
+rot_map.update({v: k for k, v in rot_map.items()})
 
 
 def _to_int(s, reverse=False):
@@ -67,12 +84,6 @@ def _flip_ew(b: List[str]):
     return [''.join(reversed(r)) for r in b]
 
 
-def _flip_ns(b: List[str]):
-    b = list(zip(*b))
-    b = _flip_ew(b)
-    return list(map(''.join, zip(*b)))
-
-
 def _rotate(b: List[str]):
     return list(map(''.join, zip(*reversed(b))))
 
@@ -80,14 +91,6 @@ def _rotate(b: List[str]):
 def _transpose(b: List[str]):
     return list(map(''.join, zip(*b)))
 
-
-# t = ['123', '456', '789']
-# print(t)
-# print('ew', _flip_ew(t))
-# print('ns', _flip_ns(t))
-# print('trans', _transpose(t))
-# print('rot', _rotate(_rotate(t)))
-# print('flip_both', _flip_ns(_flip_ew(t)))
 
 # ======================================================================================================================
 
@@ -103,7 +106,7 @@ def _shared_borders(edge: int):
 def _get_connections(fname='20.test'):
     data = _parse_data(fname)
     res = defaultdict(set)
-    for t1, t2 in permutations(data, 2):
+    for t1, t2 in combinations(data, 2):
         for o1, o2 in product(('orig', 'flipped'), repeat=2):
             if set(getattr(t1, o1)) & set(getattr(t2, o2)):
                 res[t1, o1].add((t2, o2))
@@ -117,35 +120,123 @@ def part1():
     for (t1, o1), v in conns.items():
         if len(v) == 2:
             corners.add(t1.id)
-            # print(t1.id, o1, [(t2.id, o2) for t2, o2 in v])
     return prod(corners)
 
 
 # part2
+class Cell:
+    def __init__(self, tile: Tile, orientation: str):
+        self.tile = tile
+        self.orientation = orientation
+        self.conns: Dict[Dir, Tuple[Dir, Cell]] = {}
+
+    def stitch(self, other: 'Cell'):
+        my_bord, other_bord = self.border, other.border
+        for my_dir, other_dir in product('nesw', repeat=2):
+            if getattr(my_bord, my_dir) == getattr(other_bord, other_dir):
+                my_dir, other_dir = Dir[my_dir], Dir[other_dir]
+                self.conns[my_dir] = other_dir, other
+                other.conns[other_dir] = my_dir, self
+
+    def __hash__(self):
+        return hash(self.tile) ^ hash(self.orientation)
+
+    def __eq__(self, other):
+        return self.tile == other.tile and self.orientation == other.orientation
+
+    def __str__(self):
+        return f'Cell({self.tile.id}, {self.orientation}, {len(self.conns)})'
+
+    __repr__ = __str__
+
+    @property
+    def border(self):
+        return getattr(self.tile, self.orientation)
+
 
 def _stitch_image():
-    # TODO: have all tiles in place with exact conns - need to create full image
-    class Cell(NamedTuple):
-        tile: Tile
-        orientation: str
-        rotation: int
-
     fname = '20.test'
-    data = _parse_data(fname)
     conns = _get_connections(fname)
 
-    # need tile, orientation (border), rotation
-    cur_rot = 0
+    def _add_neighbors(cur: Cell, res: Set[Cell]):
+        if cur in res:
+            return
+        res.add(cur)
 
-    (t1, o1), neighbors = first(conns.items())
-    starter_cell = Cell(t1, o1, 0)
-    used = {t1}
+        neighbors = conns.get((cur.tile, cur.orientation))
+        if not neighbors:
+            raise ValueError('should have neighbors!')
 
-    # def _place(cur_cell: Cell, neighbor: )
+        for other in starmap(Cell, neighbors):
+            cur.stitch(other)
+            _add_neighbors(other, res)
+
+    res_a, res_b = set(), set()
+    t, o = first(conns)
+    _add_neighbors(Cell(t, o), res_a)
+    _add_neighbors(Cell(t, 'flipped' if o == 'orig' else 'orig'), res_b)
+
+    return res_a, res_b
+
+
+class Dir(Enum):
+    n = Coord(0, 1)
+    e = Coord(1, 0)
+    s = Coord(0, -1)
+    w = Coord(-1, 0)
+
+    def from_offset(self, offset: int):
+        return rot_map[(rot_map[self] + offset) % 4]
+
+
+rot_map = dict(zip(Dir, range(4)))
+rot_map.update({v: k for k, v in rot_map.items()})
+
+
+def _transform_to_grid(image: Set[Cell]):
+    def _get_other_rotation(cur_rot: Dir, cur_to_other: Dir, other_to_cur: Dir) -> Dir:
+        """
+        cur_to_other -> other_to_cur: rot
+        n -> n: +2 / 0
+        n -> e: +1 / -1
+        n -> s: +0 / -2
+        n -> w: +3 / -3
+        """
+        return cur_rot.from_offset((rot_map[cur_to_other] - rot_map[other_to_cur] + 2) % 4)
+
+    def _add_to_grid(cur_cell: Cell, cur_coord: Coord = Coord(0, 0), cur_rot: Dir = Dir.n):
+        if cur_cell in processed:
+            return
+
+        processed.add(cur_cell)
+        if cur_coord in grid:
+            a = 4
+        grid[cur_coord] = cur_rot, cur_cell
+        for dir, (other_dir, other_cell) in cur_cell.conns.items():
+            mod_rot = rot_map[(rot_map[dir] + rot_map[cur_rot]) % 4]
+            print(cur_cell.tile.id, dir, cur_rot)
+            other_coord = cur_coord + mod_rot.value
+            _add_to_grid(other_cell, other_coord, _get_other_rotation(cur_rot, dir, other_dir))
+
+    grid: Dict[Coord, Tuple[Dir, Cell]] = {}
+    processed: Set[int] = set()
+    _add_to_grid(first(image))
+    # for cell in image:
+    #     print(cell.tile.id)
+    #     for _, v in cell.conns.values():
+    #         print('\t', v.tile.id)
+    # print((image - processed).pop().tile.id)
+    # print(_get_other_rotation(Dir.n, Dir.n, Dir.n))
+    print(len(image), len(grid), len(processed), processed)
+    print('=============')
+    # print(min(grid.keys()), max(grid.keys()))
+    return grid
 
 
 def part2():
-    pass
+    image_a, image_b = _stitch_image()
+    # grid = _transform_to_grid(image_a)
+    grid = _transform_to_grid(image_b)
 
 
 @timer
