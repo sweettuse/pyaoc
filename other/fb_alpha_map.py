@@ -108,9 +108,10 @@ def decode2(s) -> Node:
 
 def __main():
     with localtimer():
-        res = decode2('12432111221121211222121122212')
+        res = decode2('124321112211212112221211222122')
         # res = decode2('1212')
     with localtimer():
+        res = decode('12432111221121211222121122212')
         print(len(res))
     with localtimer():
         print(len(res.strings))

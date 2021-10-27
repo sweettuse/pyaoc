@@ -55,24 +55,24 @@ def part2():
     return first(max(res.items(), key=itemgetter(1)))
 
 
-def _part_2_calc_area(r, c, g_accum):
+def _part_2_calc_area(r, c, grid_accum):
     prev_r = r - 1
     prev_c = c - 1
-    add_back = g_accum[prev_r][prev_c] if prev_r >= 0 and prev_c >= 0 else 0
+    add_back = grid_accum[prev_r][prev_c] if prev_r >= 0 and prev_c >= 0 else 0
     cur_max = float('-inf')
 
     c_sub = lambda: 0
     r_sub = lambda: 0
     if prev_r >= 0:
-        c_sub = lambda: g_accum[prev_r][cur_c]
+        c_sub = lambda: grid_accum[prev_r][cur_c]
 
     if prev_c >= 0:
-        r_sub = lambda: g_accum[cur_r][prev_c]
+        r_sub = lambda: grid_accum[cur_r][prev_c]
 
     res = None
     for diag in range(0, size - max(r, c)):
         cur_r, cur_c = r + diag, c + diag
-        if (cur_total := g_accum[cur_r][cur_c] - c_sub() - r_sub() + add_back) > cur_max:
+        if (cur_total := grid_accum[cur_r][cur_c] - c_sub() - r_sub() + add_back) > cur_max:
             cur_max = cur_total
             res = (c, r), (cur_max, diag + 1)
 
@@ -144,10 +144,10 @@ def part2_smart():
     essentially, i just reinvented this algo from scratch: https://en.wikipedia.org/wiki/Summed-area_table
     """
     grid = _create_power_grid()
-    h_accum = map(accumulate, grid)
-    g_accum = list(zip(*map(accumulate, zip(*h_accum))))
+    horiz_accum = map(accumulate, grid)
+    grid_accum = list(zip(*map(accumulate, zip(*horiz_accum))))
 
-    res = (_part_2_calc_area(r, c, g_accum) for r, c in product(range(size), range(size)))
+    res = (_part_2_calc_area(r, c, grid_accum) for r, c in product(range(size), range(size)))
     (x, y), (_, diag) = max(res, key=itemgetter(1))
     return f'{x},{y},{diag}'
 
