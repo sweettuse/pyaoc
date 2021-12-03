@@ -13,9 +13,10 @@ from typing import Any, Iterable, NamedTuple, Callable
 
 from pyaoc2019.colors.tile_utils import RC
 
+mapt = lambda fn, *args: tuple(map(fn, *args))
 
 def read_file(name, year=2019, *, do_strip=True):
-    path = Path(f'/Users/acushner/software/pyaoc2019/pyaoc{year}/inputs')
+    path = Path(f'/Users/acushner/software/pyaoc/pyaoc{year}/inputs')
     if isinstance(name, int):
         name = f'{name:02d}'
     with open(path / name) as f:
