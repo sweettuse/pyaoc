@@ -7,10 +7,10 @@ __author__ = 'acushner'
 
 def parse_data(*, debug=False):
     if debug:
-        data = read_file('06.test', 2021)
+        fn = '06.test'
     else:
-        data = read_file(6, 2021)
-
+        fn = 6
+    data = read_file(fn, 2021)
     return mapt(int, first(data).split(','))
 
 
@@ -23,9 +23,7 @@ def part1and2(data, num_days):
     num_7s = 0
     mod7 = lambda n: n % 7
     for day in map(mod7, range(num_days)):
-        to_add = num_7s
-        num_7s = num_8s
-        num_8s = buckets[day]
+        to_add, num_7s, num_8s = num_7s, num_8s, buckets[day]
         buckets[day] += to_add
 
     return sum(buckets.values()) + num_7s + num_8s
