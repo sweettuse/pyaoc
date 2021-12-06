@@ -15,6 +15,7 @@ from pyaoc2019.colors.tile_utils import RC
 
 mapt = lambda fn, *args: tuple(map(fn, *args))
 
+
 def read_file(name, year=2019, *, do_strip=True):
     path = Path(f'/Users/acushner/software/pyaoc/pyaoc{year}/inputs')
     if isinstance(name, int):
@@ -121,6 +122,12 @@ class Coord(NamedTuple):
 
     def __mul__(self, other):
         return Coord(self.x * other, self.y * other)
+
+    def __rmul__(self, other):
+        return self * other
+
+    def __rsub__(self, other):
+        return self - other
 
     @property
     def manhattan(self):
