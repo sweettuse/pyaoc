@@ -18,7 +18,6 @@ class ZerosOnes(NamedTuple):
     @classmethod
     def from_tuple(cls, t):
         num_ones = sum(v == '1' for v in t)
-
         num_zeroes = len(t) - num_ones
         return cls(num_zeroes, num_ones)
 
@@ -28,18 +27,6 @@ def _to_counts(nums=nums) -> list[ZerosOnes]:
 
 
 def part1():
-    gamma = []
-    for col in zip(*nums):
-        num_ones = sum(v == '1' for v in col)
-        num_zeroes = len(col) - num_ones
-        gamma.append('1' if num_ones > num_zeroes else '0')
-
-    gamma_num = int(''.join(gamma), 2)
-    epsilon_num = int(''.join(flip[v] for v in gamma), 2)
-    return gamma_num * epsilon_num
-
-
-def part1_new():
     gamma = ['01'[zo.ones > zo.zeros] for zo in _to_counts()]
     gamma_num = int(''.join(gamma), 2)
     epsilon_num = int(''.join(flip[v] for v in gamma), 2)
@@ -63,7 +50,7 @@ def part2():
 
 
 def __main():
-    print(part1_new())
+    print(part1())
     print(part2())
 
 

@@ -15,7 +15,6 @@ class LineSeg(NamedTuple):
         c1, c2 = s.split(' -> ')
         return cls(Coord(*eval(c1)), Coord(*eval(c2)))
 
-
     @property
     def is_diag(self):
         return (self.c1.x != self.c2.x
