@@ -1,11 +1,7 @@
 from collections import defaultdict, Counter
-from functools import lru_cache
-from itertools import product
 from typing import NamedTuple
 
-from more_itertools import first
-
-from pyaoc2019.utils import read_file, mapt, Pickle
+from pyaoc2019.utils import read_file
 
 __author__ = 'acushner'
 
@@ -38,7 +34,7 @@ def _len_to_num():
 
 working = dict(zip(range(10), map(set, 'abcefg cf acdeg acdfg bcdf abdfg abdefg acf abcdefg abcdfg'.split())))
 chars_to_num = {frozenset(v): k for k, v in working.items()}
-chars = 'abcdefg'
+segments = 'abcdefg'
 # working_bits = {n: ''.join('1' if c in lit else '0' for c in chars) for n, lit in working.items()}
 unique = {n for n, v in _len_to_num().items() if len(v) == 1}
 
@@ -66,6 +62,7 @@ def _unique_len_to_chars(words):
 # number of times each letter appears in the the 10 digits with unique frequencies
 
 def _calc_known_freqs():
+    """count freq of lit segments across all 10 inputs"""
     res = defaultdict(set)
     for c, n in _count_chars(working.values()).items():
         res[n].add(c)
@@ -76,16 +73,21 @@ known_freqs = _calc_known_freqs()
 
 
 def _map_by_freq(d: Data) -> dict[str, str]:
+    """use the counts of lit up segments across the 10 unique numbers
+    to determine which possible correct segments each unknown segment can map to"""
     res = {frm: known_freqs[count] for frm, count in _count_chars(d.samples).items()}
     return res
 
 
 def _find_a(unknown):
-    """len(3) -> 7 - len(2) -> 1 - leaves segment 'a' as the only remaining option"""
+    """(len(3) -> 7|acf) - (len(2) -> 1|cf): leaves segment 'a' as the only remaining option"""
     return (unknown[3] - unknown[2]).pop()
 
 
 def _map_by_num(d: Data) -> dict[str, str]:
+    """use the number of lit up segments per individual number
+    to determine which possible correct segments each unknown segment can map to
+    """
     known = _unique_len_to_chars(working.values())
     unknown = _unique_len_to_chars(d.samples)
     res = {c: known[n].copy()
@@ -101,24 +103,25 @@ def _to_int(d: Data, char_map):
     return int(''.join(map(str, nums)))
 
 
-def _update(res, other):
-    return {c: res[c] & other[c] for c in res}
+def _update(cur, other):
+    return {c: cur[c] & other[c] for c in cur}
 
 
-def _decode(d: Data):
+def _decode(d: Data) -> int:
+    """decode a single input/output Data into an integer"""
     final = {}
-    res = {c: set(chars) for c in chars}
-    res = _update(res, _map_by_num(d))
-    res = _update(res, _map_by_freq(d))
+    cur = {c: set(segments) for c in segments}
+    cur.update(_map_by_num(d))
+    cur = _update(cur, _map_by_freq(d))
 
-    while res:
-        frm, to = min(res.items(), key=lambda kv: len(kv[1]))
+    while cur:
+        frm, to = min(cur.items(), key=lambda kv: len(kv[1]))
         if not to:
-            res.pop(frm)
+            cur.pop(frm)
             continue
         to = to.pop()
         final[frm] = to
-        for v in res.values():
+        for v in cur.values():
             v.discard(to)
     return _to_int(d, final)
 
