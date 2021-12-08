@@ -1,3 +1,4 @@
+import os
 import pickle
 import time
 from collections import deque
@@ -203,12 +204,15 @@ class Pickle:
         for n in filenames:
             with open(cls._outdir / n, 'rb') as f:
                 res.append(pickle.load(f))
+        if len(res) == 1:
+            res = res.pop()
         return res
 
     @classmethod
     def write(cls, **name_obj_pairs):
+        os.makedirs(cls._outdir, exist_ok=True)
         for n, obj in name_obj_pairs.items():
-            with open(cls._outdir / n, 'rb') as f:
+            with open(cls._outdir / n, 'wb') as f:
                 pickle.dump(obj, f)
 
 
