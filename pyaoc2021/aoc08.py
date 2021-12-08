@@ -1,7 +1,8 @@
 from collections import defaultdict, Counter
+from itertools import permutations
 from typing import NamedTuple
 
-from pyaoc2019.utils import read_file
+from pyaoc2019.utils import read_file, timer
 
 __author__ = 'acushner'
 
@@ -35,11 +36,7 @@ def _len_to_num():
 working = dict(zip(range(10), map(set, 'abcefg cf acdeg acdfg bcdf abdfg abdefg acf abcdefg abcdfg'.split())))
 chars_to_num = {frozenset(v): k for k, v in working.items()}
 segments = 'abcdefg'
-# working_bits = {n: ''.join('1' if c in lit else '0' for c in chars) for n, lit in working.items()}
 unique = {n for n, v in _len_to_num().items() if len(v) == 1}
-
-
-# print([working[v.pop()] for v in _len_to_num().values() if len(v) == 1])
 
 
 def part1(data):
@@ -47,6 +44,8 @@ def part1(data):
                for d in data
                for v in d.outputs)
 
+
+# ======================================================================================================================
 
 def _count_chars(words):
     return Counter(c for chars in words for c in chars)
@@ -97,10 +96,14 @@ def _map_by_num(d: Data) -> dict[str, str]:
     return res
 
 
-def _to_int(d: Data, char_map):
+def _to_int_helper(vals, char_map):
     tr = str.maketrans(char_map)
-    nums = (chars_to_num[frozenset(o.translate(tr))] for o in d.outputs)
+    nums = (chars_to_num[frozenset(o.translate(tr))] for o in vals)
     return int(''.join(map(str, nums)))
+
+
+def _to_int(d: Data, char_map):
+    return _to_int_helper(d.outputs, char_map)
 
 
 def _update(cur, other):
@@ -126,14 +129,35 @@ def _decode(d: Data) -> int:
     return _to_int(d, final)
 
 
+@timer
 def part2(data):
     return sum(map(_decode, data))
+
+
+# ======================================================================================================================
+
+def _decode_brute(d: Data):
+    """much simpler/slower brute force solution"""
+    chars = 'abcdefg'
+    for p in permutations(chars):
+        try:
+            tr = dict(zip(p, chars))
+            _to_int_helper(d.samples, tr)
+            return _to_int(d, tr)
+        except KeyError:
+            pass
+
+
+@timer
+def part2_brute(data):
+    return sum(map(_decode_brute, data))
 
 
 def __main():
     data = parse_data(debug=False)
     print(part1(data))
     print(part2(data))
+    print(part2_brute(data))
 
 
 if __name__ == '__main__':
