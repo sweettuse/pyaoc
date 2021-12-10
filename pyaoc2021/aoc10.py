@@ -19,7 +19,7 @@ def parse_data(*, debug=False):
 l_pairs = dict(zip('<([{', '>)]}'))
 r_pairs = {v: k for k, v in list(l_pairs.items())}
 
-char_scores_1 = {
+char_scores1 = {
     ')': 3,
     ']': 57,
     '}': 1197,
@@ -31,7 +31,7 @@ def _get_corrupt_or_incomplete(l) -> list[str] | str:
     """return remaining stack if incomplete
     return failed match str if corrupt"""
     stack = []
-    for i, c in enumerate(l):
+    for c in l:
         if c in l_pairs:
             stack.append(c)
         elif c in r_pairs and (not stack or stack[-1] != r_pairs[c]):
@@ -43,26 +43,26 @@ def _get_corrupt_or_incomplete(l) -> list[str] | str:
 
 
 def part1(data):
-    return sum(char_scores_1[c]
-               for c in filter(lambda v: isinstance(v, str),
-                               map(_get_corrupt_or_incomplete, data)))
+    return sum(char_scores1[c]
+               for c in map(_get_corrupt_or_incomplete, data)
+               if isinstance(c, str))
 
 
-char_scores_2 = dict(zip(')]}>', range(1, 5)))
+char_scores2 = dict(zip(')]}>', range(1, 5)))
 
 
 def _score(stack: list[str]):
     res = 0
     for c in reversed(stack):
         res *= 5
-        res += char_scores_2[l_pairs[c]]
+        res += char_scores2[l_pairs[c]]
     return res
 
 
 def part2(data):
     scores = sorted(_score(stack)
-                    for stack in filter(lambda v: isinstance(v, list),
-                                        map(_get_corrupt_or_incomplete, data)))
+                    for stack in map(_get_corrupt_or_incomplete, data)
+                    if isinstance(stack, list))
     return scores[len(scores) // 2]
 
 
