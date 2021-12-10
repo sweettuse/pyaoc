@@ -1,9 +1,8 @@
-import heapq
 from functools import partial
+from heapq import nlargest
 from math import prod
 
 from pyaoc2019.utils import read_file, mapt, exhaust
-from typing import NamedTuple
 
 __author__ = 'acushner'
 
@@ -56,7 +55,7 @@ def part2(data):
               for c_idx, v in enumerate(row)
               if v < 9}
     basin_sizes = map(partial(_get_basin_size, coords=coords), _get_minima(data))
-    return prod(heapq.nlargest(3, basin_sizes))
+    return prod(nlargest(3, basin_sizes))
 
 
 def __main():
