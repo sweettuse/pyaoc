@@ -14,22 +14,14 @@ def parse_data(*, debug=False):
     if debug:
         filename = f'{prob_num}.test'
 
-    grid = [[int(v) for v in l] for l in read_file(filename, 2021)]
-
-    return grid
+    return [[int(v) for v in l] for l in read_file(filename, 2021)]
 
 
 def _offsets():
-    offs = -1, 0, 1
-    offsets = {(r_off, c_off) for r_off in offs for c_off in offs} - {(0, 0)}
-    res = {(r, c): {(r + r_off, c + c_off)
-                    for r_off, c_off in offsets}
-           for r, c in all_points}
-
-    for k in res:
-        res[k] &= all_points
-
-    return res
+    offsets = set(product((-1, 0, 1), repeat=2)) - {(0, 0)}
+    return {(r, c): all_points & {(r + r_off, c + c_off)
+                                  for r_off, c_off in offsets}
+            for r, c in all_points}
 
 
 all_points = set(product(range(10), repeat=2))
@@ -41,7 +33,7 @@ def _inc_points(grid, points):
         grid[r][c] += 1
 
 
-def _reset(grid, points):
+def _reset_points(grid, points):
     for r, c in points:
         grid[r][c] = 0
 
@@ -63,7 +55,7 @@ def _one_round(grid):
 
         already_flashed |= to_flash
 
-    _reset(grid, already_flashed)
+    _reset_points(grid, already_flashed)
     return len(already_flashed)
 
 
@@ -80,7 +72,7 @@ def part2(grid):
 
 
 def __main():
-    print(grid := parse_data(debug=False))
+    grid = parse_data(debug=False)
     print(part1(grid))
     print(part2(grid))
 
