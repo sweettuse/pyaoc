@@ -27,10 +27,12 @@ def part1(graph):
     def _traverse(node: str = 'start', seen: frozenset[str] = frozenset()):
         if node == 'end':
             return 1
+
         if node.islower():
             if node in seen:
                 return 0
             seen |= {node}
+
         return sum(_traverse(n, seen) for n in graph[node])
 
     return _traverse()
