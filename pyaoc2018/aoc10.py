@@ -64,7 +64,7 @@ def points_to_str(points):
              for _ in range(p_min.y, p_max.y)]
 
     for p in points:
-        array[p.y - p_min.y][p.x - p_min.x] = '#'
+        array[p.y - p_min.y][p.x - p_min.x] = '\u2589'
 
     return '\n'.join(''.join(a) for a in array)
 
