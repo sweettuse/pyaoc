@@ -5,6 +5,7 @@ __author__ = 'acushner'
 
 
 class Ing(NamedTuple):
+    name: str
     cap: int
     dur: int
     flavor: int
@@ -13,8 +14,9 @@ class Ing(NamedTuple):
 
     @classmethod
     def from_str(cls, s):
-        t = s.replace(',', '').split()[2:]
-        return cls(*map(int, t[::2]))
+        t = s.replace(',', '').split()
+        return cls(t[0][:-1], *map(int, t[2::2]))
+
 
 def parse_data(*, debug=False):
     prob_num = __file__[-5:-3]
@@ -23,6 +25,21 @@ def parse_data(*, debug=False):
         filename = f'{prob_num}.test'
 
     return [Ing.from_str(s) for s in read_file(filename, 2015)]
+
+
+def _create_constraints(const: Ing, other: Ing):
+    res = []
+    vals = zip(const, other)
+    next(vals)
+    for c, o in vals:
+        if bool(c < 0) + bool(o < 0) == 1 and c:
+            res.append(-(o / c))
+        else:
+            res.append(0)
+
+    return res
+
+
 
 
 def part1(data):
