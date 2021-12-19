@@ -1,4 +1,4 @@
-
+from functools import cache
 from operator import inv, lshift, rshift, and_, or_
 
 from pyaoc2019.utils import read_file, timer
@@ -47,7 +47,7 @@ class Circuit:
         self._funcs = {}
         self._parse_data(data)
 
-    @lru_cache(None)
+    @cache
     def get(self, s):
         if isinstance(s, str):
             return self._funcs[s]()

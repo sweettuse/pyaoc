@@ -1,11 +1,9 @@
-from collections import defaultdict
-from copy import deepcopy
+from functools import reduce
 from functools import reduce
 from itertools import accumulate, product
 from operator import add
 
-from pyaoc2019.utils import read_file, mapt, exhaust, chunks, timer
-from typing import NamedTuple
+from pyaoc2019.utils import read_file, chunks, timer
 
 __author__ = 'acushner'
 
