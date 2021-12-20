@@ -1,10 +1,10 @@
 from collections import defaultdict
 from enum import Enum
+from functools import cache
 from itertools import starmap, combinations, product
 from math import prod
 from typing import List, NamedTuple, Dict, Set, Tuple
 
-from cytoolz import memoize
 from frozendict import frozendict
 from more_itertools import first
 
@@ -71,7 +71,7 @@ class Tile(NamedTuple):
         flipped = _to_border_dict(_flip_ew(borders))
         return cls(id, orig, flipped)
 
-    @memoize
+    @cache
     def all_borders(self):
         s, *rest = map(set, self[1:])
         return s.union(*rest)
@@ -196,7 +196,6 @@ def part2():
 def __main():
     print(part1())
     print(part2())
-    pass
 
 
 if __name__ == '__main__':
