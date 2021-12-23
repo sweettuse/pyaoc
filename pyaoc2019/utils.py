@@ -37,16 +37,19 @@ def localtimer():
 
 def timer(func):
     total = 0
+    ncalls = 0
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        nonlocal total
+        nonlocal total, ncalls
+        ncalls += 1
         start = time.perf_counter()
         try:
             return func(*args, **kwargs)
         finally:
             total += time.perf_counter() - start
-            print(f'{func.__name__!r} took {time.perf_counter() - start} seconds, {total} seconds')
+            print(f'{func.__name__!r} took {(time.perf_counter() - start):.6f} seconds, '
+                  f'{ncalls=} for {total:.3f} seconds')
 
     return wrapper
 

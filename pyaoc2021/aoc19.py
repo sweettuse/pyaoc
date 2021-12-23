@@ -1,9 +1,12 @@
 from __future__ import annotations
+
+from collections import defaultdict
 from dataclasses import dataclass
 from functools import cache
-from itertools import permutations, pairwise, starmap, combinations, product
+from itertools import permutations, pairwise, starmap, combinations, product, chain
+from operator import itemgetter
 
-from pyaoc2019.utils import read_file, mapt, exhaust
+from pyaoc2019.utils import read_file, mapt, exhaust, timer
 from typing import NamedTuple, TypedDict, Iterable, Iterator
 
 __author__ = 'acushner'
@@ -24,16 +27,6 @@ def parse_data(*, debug=False) -> list[Scanner]:
             break
 
     return res
-
-
-def perms(x, y, z):
-    res = set()
-    for x1 in x, -x:
-        for y1 in y, -y:
-            for z1 in z, -z:
-                res.update(permutations((x1, y1, z1)))
-    exhaust(print, sorted(res))
-    return len(res)
 
 
 @cache
@@ -137,13 +130,23 @@ class Scanner:
     @cache
     def diffs(self) -> dict[Point3d, set[Point3d]]:
         """diffs from each point to every other point"""
+        return self._diffs(self.points)
+
+    @staticmethod
+    def _diffs(points) -> dict[Point3d, set[Point3d]]:
         res = {}
-        for p1 in self.points:
-            cur = res[p1] = set()
-            for p2 in self.points:
-                if p1 is p2:
-                    continue
-                cur.add(p2 - p1)
+        for p1 in points:
+            res[p1] = {p2 - p1 for p2 in points if p1 is not p2}
+        return res
+
+    @property
+    @cache
+    def all_orient_diffs(self):
+        """ orientation -> point -> diffs"""
+        res = {}
+        for orient in range(24):
+            cur_points = list(map(itemgetter(orient), self._canonical))
+            res[orient] = self._diffs(cur_points)
         return res
 
     def __getitem__(self, item):
@@ -164,29 +167,94 @@ class Scanner:
         return cls(id, frozenset(points))
 
 
-class ScanOr(NamedTuple):
-    scanner: Scanner
-    orientation: int
-
-
-def _check_scanner_overlap(s1: Scanner, s2: Scanner):
-    for p1, d1 in s1.diffs.items():
-        for p2, d2 in s2.diffs.items():
+def _check_overlap(diffs1, diffs2):
+    for p1, d1 in diffs1.items():
+        for p2, d2 in diffs2.items():
             if len(d1 & d2) >= 11:  # 11 + the point in question
-                print('overlap')
                 return p1, p2
 
     return None, None
 
-def _get_coverage_pairs(scanners: list[Scanner]) -> set[tuple[ScanOr, ScanOr]]:
+
+def _check_scanner_overlap_full(s1: Scanner, s2: Scanner):
+    """check diffs in all possible orientations"""
+    for o1, o2 in product(range(24), repeat=2):
+        diffs1 = s1.all_orient_diffs[o1]
+        diffs2 = s2.all_orient_diffs[o2]
+        p1, p2 = _check_overlap(diffs1, diffs2)
+        if p1:
+            yield (o1, p1), (o2, p2)
+
+
+class SOP(NamedTuple):
+    scanner: Scanner
+    orientation: int
+    point: Point3d
+
+    @property
+    def so(self) -> SO:
+        return SO(self.scanner, self.orientation)
+
+
+class SO(NamedTuple):
+    scanner: Scanner
+    orientation: int
+
+
+def _get_coverage_pairs(scanners: list[Scanner]) -> set[tuple[SOP, SOP]]:
     pairs = set()
 
     for s1, s2 in combinations(scanners, 2):
-        p1, p2 = _check_scanner_overlap(s1, s2)
-        if p1:
-            print(f'for {s1} and {s2}, points {p1} and {p2} are the same')
+        for p1, p2 in _check_scanner_overlap_full(s1, s2):
+            if p1:
+                o1, p1 = p1
+                o2, p2 = p2
+                pairs.add((SOP(s1, o1, p1), SOP(s2, o2, p2)))
+                print(f'for {o1:2}:{s1} and {o2:2}:{s2}, points {p1} and {p2} are the same')
 
     return pairs
+
+
+ScanOr = tuple[Scanner, int]
+
+
+def _find_possible_orientations(scanners: list[Scanner], pairs: set[tuple[SOP, SOP]]):
+    """scanner, orientation -> {(scanner, orientation matches)}
+
+    chain together (orientation, scanner) pairs to find a cohesive universe
+    """
+    start = scanners[0]
+    scanners = set(scanners)
+    sop_map = defaultdict(set)
+    for sop1, sop2 in pairs:
+        sop_map[sop1.so].add(sop2.so)
+
+    def _find(possible: set[SOP], seen: frozenset[Scanner] = frozenset()):
+        for sop in possible:
+            if sop.scanner in seen:
+                return
+
+            seen |= {sop.scanner}
+            if not scanners - seen:
+                return seen
+
+            matches = sop_map.get(sop)
+            if not matches:
+                return
+
+            if res := _find(matches, seen):
+                return res
+
+    for sop, matches in sop_map.items():
+        if sop.scanner is not start:
+            continue
+        print('trying')
+        if res := _find(matches, frozenset({sop.scanner})):
+            return res
+
+
+def _normalize_points(pairs: set[tuple[SOP, SOP]]):
+    pass
 
 
 def part1(data):
@@ -203,7 +271,9 @@ def __main():
     print(scanners[0][1])
     print(Point3d(10, 1, 2) + Point3d(1, 1, 1))
     print(len(scanners[-1].points))
-    print(_get_coverage_pairs(scanners))
+    print(pairs := _get_coverage_pairs(scanners))
+    print('=============================')
+    print(_find_possible_orientations(scanners, pairs))
     return
     print(canonical_order())
     print(len(canonical_order()))

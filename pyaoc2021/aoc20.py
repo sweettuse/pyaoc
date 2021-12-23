@@ -83,7 +83,6 @@ def parts1and2(algo, on, num_rows, num_cols, repeat=2):
         num_cols += 1
         start_r -= 1
         start_c -= 1
-
     return len(on)
 
 
@@ -91,7 +90,6 @@ def __main():
     t = algo, on, num_rows, num_cols = parse_data(debug=False)
     print(parts1and2(*t, 2))
     print(parts1and2(*t, 50))
-    # 4942 too low
     # print(on, num_rows, num_cols)
     # print(part1(data))
     # print(part2(data))

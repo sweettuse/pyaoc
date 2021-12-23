@@ -58,7 +58,7 @@ def _unique_len_to_chars(words):
     return {l: v.pop() for l, v in res.items() if len(v) == 1}
 
 
-# number of times each letter appears in the the 10 digits with unique frequencies
+# number of times each letter appears in the 10 digits with unique frequencies
 
 def _calc_known_freqs():
     """count freq of lit segments across all 10 inputs"""
@@ -96,14 +96,10 @@ def _map_by_num(d: Data) -> dict[str, str]:
     return res
 
 
-def _to_int_helper(vals, char_map):
+def _to_int(vals, char_map):
     tr = str.maketrans(char_map)
     nums = (chars_to_num[frozenset(o.translate(tr))] for o in vals)
     return int(''.join(map(str, nums)))
-
-
-def _to_int(d: Data, char_map):
-    return _to_int_helper(d.outputs, char_map)
 
 
 def _update(cur, other):
@@ -126,7 +122,7 @@ def _decode(d: Data) -> int:
         final[frm] = to
         for v in cur.values():
             v.discard(to)
-    return _to_int(d, final)
+    return _to_int(d.outputs, final)
 
 
 @timer
@@ -142,8 +138,8 @@ def _decode_brute(d: Data):
     for p in permutations(chars):
         try:
             tr = dict(zip(p, chars))
-            _to_int_helper(d.samples, tr)
-            return _to_int(d, tr)
+            _to_int(d.samples, tr)
+            return _to_int(d.outputs, tr)
         except KeyError:
             pass
 
