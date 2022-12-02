@@ -1,5 +1,6 @@
 import os
 import pickle
+import sys
 import time
 from collections import deque
 from contextlib import contextmanager
@@ -10,18 +11,25 @@ from pathlib import Path
 
 __author__ = 'acushner'
 
-from typing import Any, Iterable, NamedTuple, Callable
+from typing import Any, Generator, Iterable, NamedTuple, Callable, TypeVar
+
+T = TypeVar('T')
 
 from pyaoc2019.colors.tile_utils import RC
 
 mapt = lambda fn, *args: tuple(map(fn, *args))
 
-
-def read_file(name, year=2019, *, do_strip=True):
-    path = Path(f'/Users/acushner/software/pyaoc/pyaoc{year}/inputs')
+def get_file_path(name, *, depth=1):
+    p, _ = os.path.split(sys._getframe(depth).f_globals['__file__'])
+    # path = Path(f'/Users/acushner/software/pyaoc/pyaoc{year}/inputs')
     if isinstance(name, int):
         name = f'{name:02d}'
-    with open(path / name) as f:
+    return Path(f'{p}/inputs') / name
+
+
+def read_file(name, year=2019, *, do_strip=True):
+    path = get_file_path(name, depth=2)
+    with open(path) as f:
         res = f.readlines()
     if do_strip:
         res = list(map(str.strip, res))
@@ -48,23 +56,17 @@ def timer(func):
             return func(*args, **kwargs)
         finally:
             total += time.perf_counter() - start
-            print(f'{func.__name__!r} took {(time.perf_counter() - start):.6f} seconds, '
-                  f'{ncalls=} for {total:.3f} seconds')
+            print(
+                f'{func.__name__!r} took {(time.perf_counter() - start):.6f} seconds, '
+                f'{ncalls=} for {total:.3f} seconds'
+            )
 
     return wrapper
 
 
-def chunks(it: Iterable[Any], size):
+def chunks(it: Iterable[T], size: int) -> Generator[list[T], None, None]:
     it = iter(it)
     yield from iter(lambda: list(islice(it, size)), [])
-
-
-def __main():
-    pass
-
-
-if __name__ == '__main__':
-    __main()
 
 
 class Atom:

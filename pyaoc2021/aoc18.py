@@ -4,7 +4,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from itertools import product
 from math import floor, ceil
-from typing import NamedTuple, Iterable, Optional
+from typing import Literal, NamedTuple, Iterable, Optional
 
 from pyaoc2019.utils import read_file, mapt, timer
 
@@ -62,7 +62,7 @@ class Pair:
         return isinstance(self.l, int) and isinstance(self.r, int)
 
     @property
-    def magnitude(self):
+    def magnitude(self) -> int:
         l = self.l if is_int(self.l) else self.l.magnitude
         r = self.r if is_int(self.r) else self.r.magnitude
         return 3 * l + 2 * r
@@ -174,7 +174,7 @@ def check_explode(pair: Pair) -> bool:
         return True
 
 
-def check_split(pair: Pair) -> bool:
+def check_split(pair: Pair) -> Optional[Literal[True]]:
     for dps in traverse(pair):
         for side in dps.side:
             if (v := getattr(dps.pair, side)) >= 10:

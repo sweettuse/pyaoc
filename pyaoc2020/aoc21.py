@@ -39,7 +39,7 @@ def _get_all_ings_allergen_map(fname=21):
 
 def part1():
     all_ings, allergen_map = _get_all_ings_allergen_map()
-    with_allergens = reduce(set.union, allergen_map.values())
+    with_allergens = set.union(*allergen_map.values())
     return sum(v for k, v in all_ings.items() if k not in with_allergens)
 
 

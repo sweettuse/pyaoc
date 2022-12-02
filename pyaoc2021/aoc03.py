@@ -33,7 +33,7 @@ def part1():
     return gamma_num * epsilon_num
 
 
-def _part2_helper(nums, pred):
+def _part2_helper(nums, pred) -> int:
     nums = nums.copy()
     for i in count():
         counts = _to_counts(nums)

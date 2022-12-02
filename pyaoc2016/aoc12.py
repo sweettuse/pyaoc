@@ -1,5 +1,6 @@
 __author__ = 'acushner'
 
+from dataclasses import dataclass
 from functools import lru_cache, wraps
 from typing import List, NamedTuple, Any
 
@@ -29,7 +30,8 @@ def _inc_pc(func):
     return _wrapper
 
 
-class Inst(NamedTuple):
+@dataclass
+class Inst:
     fn: str
     args: List[Any]
 
@@ -58,6 +60,9 @@ class Computer:
     def _to_insts(inst_strs: List[str]) -> List[Inst]:
         return [Inst.from_str(s) for s in inst_strs]
 
+    def _value(self, val_or_reg):
+        return self.regs[val_or_reg] if val_or_reg.isalpha() else int(val_or_reg)
+
     @_convert_val
     @_inc_pc
     def cpy(self, val, reg):
@@ -77,7 +82,7 @@ class Computer:
     @_convert_val
     def jnz(self, val, offset):
         """jump non-zero: inc/dec program counter by offset if val is non-zero"""
-        self._pc += int(offset) if val else 1
+        self._pc += int(self._value(offset)) if val else 1
 
     def _exec_inst(self, inst: Inst):
         getattr(self, inst.fn)(*inst.args)

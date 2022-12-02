@@ -17,7 +17,7 @@ def parse_data(*, debug=False):
 
 
 l_pairs = dict(zip('<([{', '>)]}'))
-r_pairs = {v: k for k, v in list(l_pairs.items())}
+r_pairs = {v: k for k, v in l_pairs.items()}
 
 char_scores1 = {
     ')': 3,
@@ -43,9 +43,11 @@ def _get_corrupt_or_incomplete(l) -> list[str] | str:
 
 
 def part1(data):
-    return sum(char_scores1[c]
-               for c in map(_get_corrupt_or_incomplete, data)
-               if isinstance(c, str))
+    return sum(
+        char_scores1[c]
+        for c in map(_get_corrupt_or_incomplete, data)
+        if isinstance(c, str)
+    )
 
 
 char_scores2 = dict(zip(')]}>', range(1, 5)))

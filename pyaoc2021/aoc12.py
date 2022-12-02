@@ -42,10 +42,12 @@ def part1(graph):
 def part2(graph):
     valid_paths = set()
 
-    def _traverse(node: str = 'start',
-                  seen: frozenset[str] = frozenset(),
-                  seen_twice: bool = False,
-                  path: tuple[str, ...] = ()) -> None:
+    def _traverse(
+        node: str = 'start',
+        seen: frozenset[str] = frozenset(),
+        seen_twice: bool = False,
+        path: tuple[str, ...] = (),
+    ) -> None:
         path += (node,)
 
         if node == 'end':
@@ -69,9 +71,9 @@ def part2(graph):
 
 @timer
 def part2_no_dupes(graph):
-    def _traverse(node: str = 'start',
-                  seen: frozenset[str] = frozenset({'start'}),
-                  seen_twice: bool = False) -> int:
+    def _traverse(
+        node: str = 'start', seen: frozenset[str] = frozenset({'start'}), seen_twice: bool = False
+    ) -> int:
 
         if node == 'end':
             return 1

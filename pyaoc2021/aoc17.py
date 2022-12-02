@@ -31,7 +31,6 @@ def _max_height(top, bottom):
             cur += n
             if bottom <= cur <= top:
                 res = max(res, max_height)
-                break
             if cur < bottom:
                 break
     return res

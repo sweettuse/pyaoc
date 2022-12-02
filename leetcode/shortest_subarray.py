@@ -34,10 +34,14 @@ def short_sub(nums, k):
     pos = [i + 1 for i, n in enumerate(nums) if n > 0]
     pos.reverse()
     nums = [0] + list(accumulate(nums))
-    return min(((end - prev + 1, prev, end)
-                for end, prev in combinations(pos, 2)
-                if nums[end] - nums[prev - 1] >= k),
-               default=-1)
+    return min(
+        (
+            (end - prev + 1, prev, end)
+            for end, prev in combinations(pos, 2)
+            if nums[end] - nums[prev - 1] >= k
+        ),
+        default=-1,
+    )
 
 
 def short_sub2(nums, k):

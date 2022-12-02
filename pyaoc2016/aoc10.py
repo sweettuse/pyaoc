@@ -1,72 +1,80 @@
-from collections import defaultdict, Counter
-from typing import List
+from __future__ import annotations
+from collections import defaultdict
+from dataclasses import dataclass, field
+from math import prod
+from typing import Literal, TypeAlias
 
-__author__ = 'acushner'
-
-from cytoolz import first
-
-from pyaoc2019.utils import read_file, exhaust
-
-
-def parse_instructions(insts: List[str]):
-    res = val_inst, bot_inst = {}, {}
-
-    def _parse_val_inst():
-        val_inst[int(fields[1])] = int(fields[-1])
-
-    def _parse_bot_inst():
-        bot_inst[int(fields[1])] = int(fields[6]), int(fields[-1])
-
-    funcs = dict(value=_parse_val_inst, bot=_parse_bot_inst)
-    for inst in insts:
-        fields = inst.split()
-        funcs[fields[0]]()
-
-    return res
+from pyaoc2019.utils import exhaust, read_file
 
 
-class ResExc(Exception):
-    pass
 
-
+class SendList(list):
+    def send(self, v):
+        self.append(v)
 class Factory:
-    def __init__(self, insts, target=None):
-        val_insts, self._bot_insts = parse_instructions(insts)
-        self._bots = self._init_bots(val_insts)
-        self._target = sorted(target or ())
+    def __init__(self):
+        self.outputs = defaultdict(SendList)
+        self.bots = {}
 
-    @staticmethod
-    def _init_bots(val_insts):
-        res = defaultdict(list)
-        for val, bot_id in val_insts.items():
-            res[bot_id].append(val)
+    @classmethod
+    def from_insts(cls, insts: list[str]) -> Factory:
+        """
+        'value 23 goes to bot 208'
+        'bot 125 gives low to bot 58 and high to output 57'
+        """
+        res = cls()
+        def parse_input(s: str):
+            _, val, *_, target = s.split()
+            res.bots[int(target)].send(int(val))
+            
+        inputs = []
+        for inst in insts:
+            if inst.startswith('value'):
+                inputs.append(inst)
+            else:
+                res.create_bot(inst)
+
+        exhaust(parse_input, inputs)
         return res
 
-    def _update_bot(self, bot_id):
-        ids = l_id, h_id = self._bot_insts[bot_id]
-        try:
-            pot_target = l, h = sorted(self._bots[bot_id])
-            if self._target == pot_target:
-                raise ResExc(bot_id)
-        except ValueError:
-            return
-        self._bots[bot_id].clear()
-        self._bots[l_id].append(l)
-        self._bots[h_id].append(h)
-        exhaust(map(self._update_bot, ids))
+    @property
+    def bot(self):
+        return self.bots
 
-    def run(self):
-        start = first(bot_id for bot_id, vals in self._bots.items() if len(vals) == 2)
-        try:
-            self._update_bot(start)
-        except ResExc as e:
-            return first(e.args)
+    @property
+    def output(self):
+        return self.outputs
 
+
+    def create_bot(self, s: str):
+        """ 'bot 48 gives low to bot 111 and high to bot 102' """
+        fields = s.split()
+        idxs = 1, 5, 6, 10, 11
+        bot_id, low_type, low_id, high_type, high_id = (fields[i] for i in idxs)
+        bot_id, low_id, high_id = map(int, (bot_id, low_id, high_id))
+
+        def bot_task():
+            while True:
+                v1 = yield
+                v2 = yield
+                low, high = sorted((v1, v2))
+                if (low, high) == (17, 61):
+                    print('part1:', bot_id)
+                getattr(self, low_type)[low_id].send(low)
+                getattr(self, high_type)[high_id].send(high)
+        
+        bt = bot_task()
+        next(bt)
+        self.bots[bot_id] = bt
+        
+
+    def part2(self):
+        print('part2:', prod(self.output[i][0] for i in range(3)))
 
 def __main():
-    # f = Factory(read_file('10.test', 2016), target=(5, 2))
-    f = Factory(read_file(10, 2016), target=(17, 61))
-    print(f.run())
+    insts = read_file(10, 2016)
+    f = Factory.from_insts(insts)
+    f.part2()
 
 
 if __name__ == '__main__':

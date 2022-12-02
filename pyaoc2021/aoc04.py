@@ -13,6 +13,7 @@ data = read_file(4, 2021)
 def parse_data():
     d = iter(data)
     nums = mapt(int, next(d).split(','))
+    Board.called.clear()
 
     cur = []
     res = set()
@@ -52,11 +53,8 @@ class Board:
 
     @property
     def is_winner(self) -> bool:
-        for r in self.rows:
-            if not r - self.called:
-                return True
-        for c in self.cols:
-            if not c - self.called:
+        for r_or_c in chain(self.rows, self.cols):
+            if not r_or_c - self.called:
                 return True
         return False
 
@@ -76,13 +74,16 @@ def part1():
 
 def part2():
     nums, boards = parse_data()
+    to_rm = set()
     for n in nums:
         Board.called.add(n)
-        for b in boards.copy():
+        to_rm.clear()
+        for b in boards:
             if b.is_winner:
                 if len(boards) == 1:
                     return b.value * n
-                boards.remove(b)
+                to_rm.add(b)
+        boards -= to_rm
 
 
 def __main():
