@@ -223,3 +223,6 @@ class Pickle:
 
 def identity(x):
     return x
+
+def take(n, iterable):
+    return list(islice(iterable, n))

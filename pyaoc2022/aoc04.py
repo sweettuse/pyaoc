@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
-from pyaoc2019.utils import read_file
+from pyaoc2019.utils import read_file, mapt
 
 
 @dataclass
@@ -27,7 +27,7 @@ class Range:
 
 
 def parse_file(name):
-    return [tuple(map(Range.from_str, l.split(','))) for l in read_file(name)]
+    return [mapt(Range.from_str, l.split(',')) for l in read_file(name)]
 
 
 def part1(name):
