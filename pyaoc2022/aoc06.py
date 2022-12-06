@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict, deque
+from functools import partial
 
 from pyaoc2019.utils import read_file, take, timer
 
@@ -8,9 +9,9 @@ from pyaoc2019.utils import read_file, take, timer
 def parse_file(name):
     return read_file(name)[0]
 
-n_times = 100
+time_multiple = partial(timer, n_times=100)
 
-@timer(n_times=n_times)
+@time_multiple
 def find_start_of_message(data, maxlen):
     """notes:
     
@@ -26,7 +27,7 @@ def find_start_of_message(data, maxlen):
             return i
 
 
-@timer(n_times=n_times)
+@time_multiple
 def find_start_of_message_counter(data, total_len):
     it = iter(data)
 
@@ -41,7 +42,7 @@ def find_start_of_message_counter(data, total_len):
         if not res[prev]:
             res.pop(prev)
 
-@timer(n_times=n_times)
+@time_multiple
 def find_start_of_message_ddict(data, total_len):
     it = iter(data)
 
