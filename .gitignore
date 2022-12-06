@@ -1,2 +1,5 @@
 .aoc
 .venv
+.aocorig
+.vscode
+pyaoc2021/24_data/

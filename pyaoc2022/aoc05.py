@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import NamedTuple, Type
 
-from pyaoc2019.utils import chunks, exhaust, get_file_path, read_file, take
+from pyaoc2019.utils import chunks, get_file_path
 
 
 class Inst(NamedTuple):
@@ -51,6 +51,7 @@ def _parse_crates(lines: list[str], stack_type=Stack) -> list[Stack]:
         for stack, crate in zip(res[1:], chunks(l, 4)):
             if crate_id := crate[1].strip():
                 stack.push(crate_id)
+
     for stack in res:
         stack.reverse()
 
@@ -71,7 +72,7 @@ def parse_file(name, stack_type: Type[Stack]):
     )
 
 
-def part1and2(name, stack_type):
+def part1and2(name, stack_type) -> str:
     stacks, insts = parse_file(name, stack_type)
     for inst in insts:
         inst.execute(stacks)
