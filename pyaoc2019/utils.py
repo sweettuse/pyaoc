@@ -5,7 +5,7 @@ import time
 from collections import deque
 from contextlib import contextmanager
 from enum import Enum
-from functools import wraps
+from functools import partial, wraps
 from itertools import islice
 from pathlib import Path
 
@@ -43,9 +43,12 @@ def localtimer():
     print('func took', time.perf_counter() - start)
 
 
-def timer(func):
+def timer(func=None, *, n_times: int = 1):
     total = 0
     ncalls = 0
+
+    if not func:
+        return partial(timer, n_times=n_times)
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -53,7 +56,11 @@ def timer(func):
         ncalls += 1
         start = time.perf_counter()
         try:
-            return func(*args, **kwargs)
+            res = func(*args, **kwargs)
+            if n_times > 1:
+                for _ in range(n_times - 1):
+                    func(*args, **kwargs)
+            return res
         finally:
             total += time.perf_counter() - start
             print(
