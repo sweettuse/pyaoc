@@ -9,14 +9,14 @@ from pyaoc2019.utils import read_file, take, timer
 def parse_file(name):
     return read_file(name)[0]
 
-time_multiple = partial(timer, n_times=100)
+time_multiple = partial(timer, n_times=1000)
 
 @time_multiple
 def find_start_of_message(data, maxlen):
     """notes:
     
     - Counter is still slow
-    - deque/set is faster until msg_len 7, then defaultdict starts to win
+    - deque/set is faster until msg_len 7 or 8, then defaultdict starts to win
     """
     it = iter(data)
 
