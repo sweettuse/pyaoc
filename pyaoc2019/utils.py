@@ -125,16 +125,16 @@ class Coord(NamedTuple):
     y: int
 
     def __add__(self, other):
-        return Coord(self.x + other[0], self.y + other[1])
+        return type(self)(self.x + other[0], self.y + other[1])
 
     def __sub__(self, other):
-        return Coord(self.x - other[0], self.y - other[1])
+        return type(self)(self.x - other[0], self.y - other[1])
 
     def __neg__(self):
-        return Coord(-self.x, -self.y)
+        return type(self)(-self.x, -self.y)
 
     def __mul__(self, other):
-        return Coord(self.x * other, self.y * other)
+        return type(self)(self.x * other, self.y * other)
 
     def __rmul__(self, other):
         return self * other
