@@ -10,6 +10,12 @@ from rich import print
 from pyaoc2019.utils import read_file, timer
 
 
+# lol decided to approach the first way in a time efficient but way overly complicated manner.
+# ==============================================================================
+# part 1 complicated
+# ==============================================================================
+
+
 def rot90(grid, n=1):
     """rotate grid 90 degrees clockwise"""
     for _ in range(n):
@@ -79,6 +85,32 @@ def part1(grid):
     return total_seen
 
 
+grid = parse_data(8)
+grid = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9],
+]
+
+display(grid)
+display(rot90(grid, 1))
+display(rot90(grid, 2))
+display(rot90(grid, 3))
+
+display(cum_max(grid, 2))
+print(get_inner_grid_as_coord_value_map(grid))
+
+# ==============================================================================
+# part2
+# ==============================================================================
+def _to_coord_height_map(grid):
+    return {
+        (r_idx, c_idx): v
+        for r_idx, row in enumerate(grid)
+        for c_idx, v in enumerate(row)
+    }  # fmt: skip
+
+
 def _calc_can_see(coord_height_map, cur_height, rc, offset):
     r, c = rc
     r_o, c_o = offset
@@ -93,15 +125,18 @@ def _calc_can_see(coord_height_map, cur_height, rc, offset):
 
 
 def part2(grid):
-    coord_height_map = {
-        (r_idx, c_idx): v for r_idx, row in enumerate(grid) for c_idx, v in enumerate(row)
-    }
+    coord_height_map = _to_coord_height_map(grid)
     res = {
         rc: prod(_calc_can_see(coord_height_map, height, rc, offset) for offset in offsets)
         for rc, height in coord_height_map.items()
     }
 
     return max(res.values())
+
+
+# ==============================================================================
+# part1 simple
+# ==============================================================================
 
 
 def _check_visible(coord_height_map, target_height, rc, offset) -> bool:
@@ -118,32 +153,13 @@ def _check_visible(coord_height_map, target_height, rc, offset) -> bool:
 
 @timer
 def part1_simple(grid):
-    coord_height_map = {
-        (r_idx, c_idx): v for r_idx, row in enumerate(grid) for c_idx, v in enumerate(row)
-    }
-    total_seen = 0
-    for rc, height in coord_height_map.items():
-        for offset in offsets:
-            if _check_visible(coord_height_map, height, rc, offset):
-                total_seen += 1
-                break
-    return total_seen
+    coord_height_map = _to_coord_height_map(grid)
+    return sum(
+        any(_check_visible(coord_height_map, height, rc, offset) for offset in offsets)
+        for rc, height in coord_height_map.items()
+    )
 
 
-grid = parse_data(8)
-grid = [
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 9],
-]
-
-display(grid)
-display(rot90(grid, 1))
-display(rot90(grid, 2))
-display(rot90(grid, 3))
-
-display(cum_max(grid, 2))
-print(get_inner_grid_as_coord_value_map(grid))
 grid = parse_data(8)
 print(part1(grid))
 print(part2(grid))
