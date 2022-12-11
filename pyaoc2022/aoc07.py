@@ -5,24 +5,8 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Literal, Optional
 
-from pyaoc2019.utils import exhaust, read_file
+from pyaoc2019.utils import PutIter, exhaust, read_file
 
-
-class PutIter:
-    def __init__(self, iterable):
-        self.it = iter(iterable)
-        self._buffer = deque()
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self._buffer:
-            return self._buffer.pop()
-        return next(self.it)
-
-    def put(self, value):
-        self._buffer.appendleft(value)
 
 
 @dataclass

@@ -27,10 +27,13 @@ def get_file_path(name, *, depth=1):
     return Path(f'{p}/inputs') / name
 
 
-def read_file(name, year=2019, *, do_strip=True):
+def read_file(name, year=2019, *, do_strip=True, do_split=True):
     path = get_file_path(name, depth=2)
     with open(path) as f:
-        res = f.readlines()
+        if do_split:
+            res = f.readlines()
+        else:
+            return f.read()
     if do_strip:
         res = list(map(str.strip, res))
     return res
@@ -233,3 +236,23 @@ def identity(x):
 
 def take(n, iterable):
     return list(islice(iterable, n))
+
+class PutIter:
+    """iterator that you can put back values to
+    
+    basically allows `peek`
+    """
+    def __init__(self, iterable):
+        self.it = iter(iterable)
+        self._buffer = deque()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self._buffer:
+            return self._buffer.pop()
+        return next(self.it)
+
+    def put(self, value):
+        self._buffer.appendleft(value)

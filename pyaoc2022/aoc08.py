@@ -7,7 +7,7 @@ from math import prod
 from typing import Optional, TypeAlias
 from rich import print
 
-from pyaoc2019.utils import read_file, timer
+from pyaoc2019.utils import read_file, timer, Coord
 
 
 # lol decided to approach the first way in a time efficient but way overly complicated manner.
@@ -105,29 +105,27 @@ print(get_inner_grid_as_coord_value_map(grid))
 # ==============================================================================
 def _to_coord_height_map(grid):
     return {
-        (r_idx, c_idx): v
+        Coord(r_idx, c_idx): v
         for r_idx, row in enumerate(grid)
         for c_idx, v in enumerate(row)
     }  # fmt: skip
 
 
-def _calc_can_see(coord_height_map, cur_height, rc, offset):
-    r, c = rc
-    r_o, c_o = offset
-    nxt = r + r_o, c + c_o
+def _calc_num_can_see(coord_height_map, cur_height, rc, offset):
+    nxt = rc + offset
     if (height := coord_height_map.get(nxt)) is None:
         return 0
 
     if cur_height <= height:
         return 1
 
-    return 1 + _calc_can_see(coord_height_map, cur_height, nxt, offset)
+    return 1 + _calc_num_can_see(coord_height_map, cur_height, nxt, offset)
 
 
 def part2(grid):
     coord_height_map = _to_coord_height_map(grid)
     res = {
-        rc: prod(_calc_can_see(coord_height_map, height, rc, offset) for offset in offsets)
+        rc: prod(_calc_num_can_see(coord_height_map, height, rc, offset) for offset in offsets)
         for rc, height in coord_height_map.items()
     }
 
@@ -140,14 +138,13 @@ def part2(grid):
 
 
 def _check_visible(coord_height_map, target_height, rc, offset) -> bool:
-    r, c = rc
-    r_o, c_o = offset
-    nxt = r + r_o, c + c_o
+    nxt = rc + offset
     if (height := coord_height_map.get(nxt)) is None:
         return True
 
     if target_height <= height:
         return False
+
     return _check_visible(coord_height_map, target_height, nxt, offset)
 
 
