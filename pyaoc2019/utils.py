@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 import pickle
 import sys
@@ -5,17 +6,15 @@ import time
 from collections import deque
 from contextlib import contextmanager
 from enum import Enum
-from functools import partial, wraps
+from functools import partial, total_ordering, wraps
 from itertools import islice
 from pathlib import Path
 
 __author__ = 'acushner'
 
-from typing import Any, Generator, Iterable, NamedTuple, Callable, TypeVar
+from typing import Any, Generator, Iterable, Literal, NamedTuple, Callable, TypeVar, overload
 
 T = TypeVar('T')
-
-from pyaoc2019.colors.tile_utils import RC
 
 mapt = lambda fn, *args: tuple(map(fn, *args))
 
@@ -26,8 +25,8 @@ def get_file_path(name, *, depth=1):
         name = f'{name:02d}'
     return Path(f'{p}/inputs') / name
 
-
-def read_file(name, year=2019, *, do_strip=True, do_split=True):
+def read_file(name, year=2019, *, do_strip=True, do_split=True) -> str | list[str]:
+    """note, year no longer used - now parsed by frame hacking"""
     path = get_file_path(name, depth=2)
     with open(path) as f:
         if do_split:
@@ -39,11 +38,12 @@ def read_file(name, year=2019, *, do_strip=True, do_split=True):
     return res
 
 
-@contextmanager
-def localtimer():
-    start = time.perf_counter()
-    yield
-    print('func took', time.perf_counter() - start)
+class localtimer:
+    def __enter__(self):
+        self.start = time.perf_counter()
+    
+    def __exit__(self, exc_type, exc, tb):
+        print('func took', time.perf_counter() - self.start)
 
 
 def timer(func=None, *, n_times: int = 1):
@@ -122,6 +122,61 @@ def sign(n):
         return -1
     return 0
 
+@total_ordering
+class RC(NamedTuple):
+    """represent row/column coords"""
+    r: int
+    c: int
+
+    def to(self, other):
+        """range from self to other"""
+        yield from (
+            RC(r, c)
+            for r in range(self.r, other.r)
+            for c in range(self.c, other.c)
+        )
+
+    def in_bounds(self, rc_ul, rc_lr) -> bool:
+        """return True if self inside the bounds of [upper_left, lower_right)"""
+        return not (
+            self[0] < rc_ul[0] or self[1] < rc_ul[1]
+            or self[0] >= rc_lr[0] or self[1] >= rc_lr[1]
+        )
+
+    @property
+    def area(self):
+        return self.r * self.c
+
+    def __add__(self, other) -> RC:
+        return type(self)(self[0] + other[0], self[1] + other[1])
+
+    def __sub__(self, other) -> RC:
+        return type(self)(self[0] - other[0], self[1] - other[1])
+
+    def __floordiv__(self, other) -> RC:
+        return type(self)(self[0] // other[0], self[1] // other[1])
+
+    def __mod__(self, other) -> RC:
+        return type(self)(self[0] % other[0], self[1] % other[1])
+
+    def __lt__(self, other):
+        return self[0] < other[0] and self[1] < other[1]
+
+    def __eq__(self, other):
+        return self[0] == other[0] and self[1] == other[1]
+
+    def __rmod__(self, other) -> RC:
+        return self % other
+
+    def __divmod__(self, other) -> tuple[RC, RC]:
+        return self // other, self % other
+
+    def __neg__(self):
+        return type(self)(-self[0], -self[1])
+
+    @property
+    def manhattan(self):
+        return abs(self.r) + abs(self.c)
 
 class Coord(NamedTuple):
     x: int
