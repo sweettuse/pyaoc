@@ -56,7 +56,7 @@ def part2(name):
     pairs.append(divider_pair)
 
     packets = sorted(Packet(p) for pair in pairs for p in pair)
-    divider_packets = [Packet(p) for p in divider_pair]
+    divider_packets = mapt(Packet, divider_pair)
 
     return prod(i for i, p in enumerate(packets, 1) if p in divider_packets)
 

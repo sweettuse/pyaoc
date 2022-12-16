@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
 import pickle
+import re
 import sys
 import time
 from collections import deque
@@ -36,6 +37,11 @@ def read_file(name, year=2019, *, do_strip=True, do_split=True) -> str | list[st
     if do_strip:
         res = list(map(str.strip, res))
     return res
+
+def get_all_ints(s: str) -> Iterable[int]:
+    """parse all ints from a string"""
+    return map(int, re.findall('[-]?\d+', s))
+    
 
 
 class localtimer:

@@ -87,13 +87,14 @@ def part1(insts):
 
 
 insts = parse_data(9)
-print(part1(insts))
 
 
 def parts1and2(insts, num_knots):
     knots = [Coord(0, 0)] * num_knots
     visited = {knots[-1]}
+    total_insts = 0
     for offset in _offsets(insts):
+        total_insts += 1
         knots[0] += offset
         for i in range(len(knots) - 1):
             h, t = knots[i], knots[i + 1]
