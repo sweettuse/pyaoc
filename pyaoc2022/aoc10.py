@@ -69,9 +69,9 @@ class Machine:
     q: deque[Event] = deque()
 
     def __post_init__(self):
-        self._load_instructions()
+        self._load_events()
 
-    def _load_instructions(self):
+    def _load_events(self):
         cur = 0
         for inst in self.insts:
             cur += inst.num_cycles
