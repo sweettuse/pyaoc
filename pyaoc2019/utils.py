@@ -13,9 +13,11 @@ from pathlib import Path
 
 __author__ = 'acushner'
 
-from typing import Any, Generator, Iterable, Literal, NamedTuple, Callable, TypeVar, overload
+from typing import Any, Generator, Iterable, Iterator, Literal, NamedTuple, Callable, Optional, TypeVar, overload, ParamSpec
+
 
 T = TypeVar('T')
+P = ParamSpec('P')
 
 mapt = lambda fn, *args: tuple(map(fn, *args))
 
@@ -38,7 +40,7 @@ def read_file(name, year=2019, *, do_strip=True, do_split=True) -> str | list[st
         res = list(map(str.strip, res))
     return res
 
-def get_all_ints(s: str) -> Iterable[int]:
+def get_all_ints(s: str) -> Iterator[int]:
     """parse all ints from a string"""
     return map(int, re.findall('[-]?\d+', s))
     
@@ -52,7 +54,7 @@ class localtimer:
         print('func took', time.perf_counter() - self.start)
 
 
-def timer(func=None, *, n_times: int = 1):
+def timer(func: Optional[Callable[P, T]]=None, *, n_times: int = 1) -> Callable[P, T]:
     total = 0
     ncalls = 0
 
