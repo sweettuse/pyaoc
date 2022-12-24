@@ -15,9 +15,6 @@ class Monkey:
     rop: Optional[str] = None
     registry: ClassVar[dict[str, Callable]] = {}
 
-    def __post_init__(self):
-        self.registry[self.name] = self.fn
-
     @classmethod
     def from_str(cls, s: str) -> Monkey:
         name, fn_str = s.split(': ')
@@ -32,6 +29,7 @@ class Monkey:
             s = f'registry[{m1!r}]() {op} registry[{m2!r}]()'
             fn = lambda registry=cls.registry: eval(s)
 
+        cls.registry[name] = fn
         return cls(name, fn, *operands)
 
 
@@ -44,7 +42,7 @@ monkeys = parse_data(21)
 
 
 def part1():
-    return Monkey.registry['root']()
+    return int(Monkey.registry['root']())
 
 
 @dataclass
@@ -92,10 +90,12 @@ class Search:
 
 def part2():
     root = next(m for m in monkeys if m.name == 'root')
-    lval = Monkey.registry[root.lop]()
+    # i checked which value, right or left, changed when humn's value changed. it was left
+    # so binary search that
     rval = Monkey.registry[root.rop]()
 
     s = Search(root.lop, int(1e16))
+    # flip ordering here and in `__getitem__` to make it ascending for bisect
     return bisect_left(s, -rval)
 
 
