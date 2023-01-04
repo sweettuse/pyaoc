@@ -161,6 +161,8 @@ class RC(NamedTuple):
     def __sub__(self, other) -> RC:
         return type(self)(self[0] - other[0], self[1] - other[1])
 
+    def __mul__(self, n: int):
+        return type(self)(self[0] * n, self[1] * n)
     def __floordiv__(self, other) -> RC:
         return type(self)(self[0] // other[0], self[1] // other[1])
 

@@ -29,7 +29,7 @@ class Point3(NamedTuple):
 
     @property
     def center(self) -> Point3:
-        return self + Point3(0.5, 0.5, 0.5)
+        return self + Point3(.5, .5, .5)
 
     @property
     def faces(self) -> frozenset[frozenset[Point3]]:
@@ -49,18 +49,15 @@ class Point3(NamedTuple):
 def parse_data(name):
     return mapt(Point3.from_str, read_file(name))
 
-
 def _get_exposed_faces(points):
     res = Counter(chain.from_iterable(p.faces for p in points))
     return {p for p, num in res.items() if num == 1}
-
 
 def part1(name):
     return len(_get_exposed_faces(parse_data(name)))
 
 
 print(part1(18))
-print(Point3(1, 1, 1).center)
 
 # ==============================================================================
 # part 2
@@ -100,8 +97,7 @@ def _create_bounding_box(points: list[Point3]) -> tuple[set[Point3], set[Point3]
 
 
 offsets = [
-    Point3(*v)
-    for v in (
+    Point3(*v) for v in (
         (1, 0, 0),
         (-1, 0, 0),
         (0, 1, 0),
@@ -110,7 +106,6 @@ offsets = [
         (0, 0, -1),
     )
 ]
-
 
 def _get_surrounded_points(
     points: Iterable[Point3],
@@ -129,6 +124,7 @@ def _get_surrounded_points(
                 if nxt in inner_unoccupied and nxt not in seen:
                     working.append(nxt)
     return inner_unoccupied - seen
+    
 
 
 def part2(name):
@@ -152,6 +148,5 @@ def part2(name):
     exposed_faces = _get_exposed_faces(points)
     surrounded_faces = set(chain.from_iterable(p.faces for p in surrounded_points))
     return len(exposed_faces - surrounded_faces)
-
 
 print(part2(18))
