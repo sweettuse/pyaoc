@@ -10,7 +10,7 @@ def parse_data(*, debug=False):
     if debug:
         filename = f'{prob_num}.test'
 
-    return read_file(filename, 2021)
+    return read_file(filename, 2015)
 
 
 def part1(data):
@@ -22,7 +22,9 @@ def part2(data):
 
 
 def __main():
-    data = parse_data(debug=True)
+    data = parse_data(debug=False)
+    print(data)
+    print(data[0])
     print(part1(data))
     print(part2(data))
 

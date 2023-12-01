@@ -3,11 +3,11 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import cache
-from itertools import permutations, pairwise, starmap, combinations, product, chain
+from itertools import pairwise, combinations, product
 from operator import itemgetter
 
-from pyaoc2019.utils import read_file, mapt, exhaust, timer
-from typing import NamedTuple, TypedDict, Iterable, Iterator
+from pyaoc2019.utils import read_file, exhaust
+from typing import NamedTuple, Iterator
 
 __author__ = 'acushner'
 

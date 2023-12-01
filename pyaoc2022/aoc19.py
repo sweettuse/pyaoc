@@ -15,7 +15,6 @@ class RobotSpec:
 
     @classmethod
     def from_str(cls, s) -> RobotSpec:
-        print(repr(s))
         mineral_str, cost_str = s.split(' costs ')
         mineral = mineral_str.split()[1]
 
@@ -31,21 +30,25 @@ class RobotSpec:
 @dataclass
 class Blueprint:
     num: int
-    robot_specs: tuple[RobotSpec, ...]
+    robot_specs: dict[str, RobotSpec]
+
+    def __getattr__(self, attr):
+        try:
+            return self.robot_specs[attr]
+        except:
+            return super().__getattr__(attr)
 
     @classmethod
     def from_str(cls, s) -> Blueprint:
         num_str, rem = s.split(':')
         num = next(get_all_ints(num_str))
 
-        robot_specs = tuple(
-            RobotSpec.from_str(stripped) for s in rem.split('.') if (stripped := s.strip())
-        )
-        return cls(num, robot_specs)
+        robot_specs = (RobotSpec.from_str(stripped) for s in rem.split('.') if (stripped := s.strip()))
+        return cls(num, {rs.mineral: rs for rs in robot_specs})
 
     def can_build(self, stock: dict[Mineral, int]) -> Generator[RobotSpec, None, None]:
         """yield each robot that could be built from this stock"""
-        for spec in self.robot_specs:
+        for spec in self.robot_specs.values():
             if spec.can_build(stock):
                 yield spec
 
@@ -57,7 +60,7 @@ initial_stock = dict.fromkeys(('ore', 'clay', 'obsidian', 'geode'), 0)
 class Executor:
     blueprint: Blueprint
     robots: dict[Mineral, int] = field(default_factory=lambda: dict(ore=1))
-    stock: dict[Mineral, int] = field(default_factory=lambda: initial_stock.copy())
+    stock: dict[Mineral, int] = field(default_factory=initial_stock.copy)
     time: int = 0
 
     def run(self, end_time=24):
@@ -77,3 +80,10 @@ def parse_data(name) -> list[Blueprint]:
 
 
 print(parse_data(19))
+b = parse_data(19)[0]
+print(b)
+
+
+def cost_for_geode(b: Blueprint):
+
+    pass

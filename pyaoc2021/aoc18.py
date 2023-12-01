@@ -4,7 +4,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from itertools import product
 from math import floor, ceil
-from typing import Literal, NamedTuple, Iterable, Optional
+from typing import Literal, NamedTuple, Iterable, Optional, TypeGuard
 
 from pyaoc2019.utils import read_file, mapt, timer
 
@@ -25,7 +25,7 @@ def parse_data(*, debug=False) -> tuple[Pair, ...]:
 class Pair:
     l: int | Pair
     r: int | Pair
-    parent: Optional[tuple[Pair, int]] = None
+    parent: tuple[Pair, int | str] | None = None
 
     def __add__(self, other):
         return Pair(self, other)
@@ -119,11 +119,11 @@ class DPS(NamedTuple):
         return f'DPS(depth={self.depth}, {p_str})'
 
 
-def is_pair(p):
+def is_pair(p) -> TypeGuard[Pair]:
     return isinstance(p, Pair)
 
 
-def is_int(p):
+def is_int(p) -> TypeGuard[int]:
     return isinstance(p, int)
 
 
@@ -172,6 +172,8 @@ def check_explode(pair: Pair) -> bool:
             _inc(next_reg, to_explode.pair.r, 'l')
         setattr(*to_explode.pair.parent, 0)
         return True
+
+    return False
 
 
 def check_split(pair: Pair) -> Optional[Literal[True]]:

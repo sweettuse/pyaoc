@@ -3,6 +3,7 @@ from collections import defaultdict, deque
 from dataclasses import dataclass
 from functools import cache
 from itertools import count, product, starmap
+from math import prod
 
 from pyaoc2019.utils import RC, exhaust, read_file, timer
 from rich import print
@@ -37,20 +38,21 @@ class Blizzards:
 
     def __post_init__(self):
         self._frozen = frozenset(self.init_pos_map.items())
-        self._period = self.size.r * self.size.c
+        self._period = prod(self.size)
     
-    def locations(self, n: int):
-        return self._locations(n % self._period)
-
     def __hash__(self):
         return id(self)
     
     def __eq__(self, other):
         return self is other
     
+    def locations(self, t: int):
+        """get blizzard locations at time t"""
+        return self._locations(t % self._period)
+
     @cache
-    def _locations(self, n: int):
-        return frozenset({(init_pos + d * n) % self.size for init_pos, d in self._frozen})
+    def _locations(self, t: int):
+        return frozenset({(init_pos + d * t) % self.size for init_pos, d in self._frozen})
 
 
 
