@@ -21,8 +21,7 @@ class Game:
     def is_valid(self) -> bool:
         return all(cs.is_valid for cs in self.cube_sets)
 
-    @property
-    def bounding_cube_set(self) -> CubeSet:
+    def calc_bounding_cube_set(self) -> CubeSet:
         cur = CubeSet()
         for cs in self.cube_sets:
             cur = CubeSet(*(max(a, b) for a, b in zip(cur, cs)))
@@ -68,7 +67,7 @@ def part1(fname: str) -> int:
 
 
 def part2(fname: str) -> int:
-    return sum(g.bounding_cube_set.power for g in _parse_data(fname))
+    return sum(g.calc_bounding_cube_set().power for g in _parse_data(fname))
 
 
 def __main():
