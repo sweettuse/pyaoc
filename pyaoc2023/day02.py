@@ -2,20 +2,20 @@ from __future__ import annotations
 from dataclasses import dataclass
 from math import prod
 
-from pyaoc2019.utils import read_file
+from pyaoc2019.utils import mapt, read_file, timer
 
+frozen = True
+slots = True
 
-@dataclass
+@dataclass(frozen=frozen, slots=slots)
 class Game:
     id: int
-    cube_sets: list[CubeSet]
+    cube_sets: tuple[CubeSet]
 
     @classmethod
     def from_str(cls, s: str) -> Game:
         game_str, rest = s.split(":")
-        id = int(game_str[5:])
-        cube_sets = map(CubeSet.from_str, rest.split(";"))
-        return Game(id, list(cube_sets))
+        return Game(int(game_str[5:]), mapt(CubeSet.from_str, rest.split(";")))
 
     @property
     def is_valid(self) -> bool:
@@ -28,7 +28,7 @@ class Game:
         return cur
 
 
-@dataclass
+@dataclass(frozen=frozen, slots=slots)
 class CubeSet:
     red: int = 0
     green: int = 0
@@ -36,11 +36,8 @@ class CubeSet:
 
     @classmethod
     def from_str(cls, s: str) -> CubeSet:
-        res = cls()
-        for pair in s.split(","):
-            num, color = pair.split()
-            setattr(res, color, int(num))
-        return res
+        num_colors = (num_color.split() for num_color in s.split(","))
+        return cls(**dict((color, int(num)) for num, color in num_colors))
 
     @property
     def is_valid(self) -> bool:
@@ -58,8 +55,8 @@ class CubeSet:
 MAX_CUBE_SET = CubeSet(12, 13, 14)
 
 
-def _parse_data(fname: str) -> list[Game]:
-    return list(map(Game.from_str, read_file(fname)))
+def _parse_data(fname: str) -> tuple[Game]:
+    return mapt(Game.from_str, read_file(fname))
 
 
 def part1(fname: str) -> int:
@@ -70,6 +67,7 @@ def part2(fname: str) -> int:
     return sum(g.calc_bounding_cube_set().power for g in _parse_data(fname))
 
 
+@timer
 def __main():
     print(part1("02.txt"))
     print(part2("02.txt"))
@@ -77,7 +75,3 @@ def __main():
 
 if __name__ == "__main__":
     __main()
-
-
-def _parse_line(s: str) -> Game:
-    ...

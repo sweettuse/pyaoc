@@ -5,28 +5,32 @@ import re
 import sys
 import time
 from collections import deque
-from contextlib import contextmanager
 from enum import Enum
 from functools import partial, total_ordering, wraps
 from itertools import islice
 from pathlib import Path
 
-__author__ = 'acushner'
+__author__ = "acushner"
 
-from typing import Any, Generator, Iterable, Iterator, Literal, NamedTuple, Callable, Optional, TypeVar, overload, ParamSpec
+from typing import (
+    Generator,
+    Iterable,
+    Iterator,
+    NamedTuple,
+    Callable,
+    Optional,
+    TypeVar,
+    ParamSpec,
+)
 
 
-T = TypeVar('T')
-P = ParamSpec('P')
+T = TypeVar("T")
+P = ParamSpec("P")
 
-mapt = lambda fn, *args: tuple(map(fn, *args))
 
-def get_file_path(name, *, depth=1):
-    p, _ = os.path.split(sys._getframe(depth).f_globals['__file__'])
-    # path = Path(f'/Users/acushner/software/pyaoc/pyaoc{year}/inputs')
-    if isinstance(name, int):
-        name = f'{name:02d}'
-    return Path(f'{p}/inputs') / name
+def mapt(fn: Callable[..., T], *a) -> tuple[T]:
+    return tuple(map(fn, *a))
+
 
 def read_file(name, year=2019, *, do_strip=True, do_split=True) -> str | list[str]:
     """note, year no longer used - now parsed by frame hacking"""
@@ -40,21 +44,29 @@ def read_file(name, year=2019, *, do_strip=True, do_split=True) -> str | list[st
         res = list(map(str.strip, res))
     return res
 
+
+def get_file_path(name, *, depth=1):
+    p, _ = os.path.split(sys._getframe(depth).f_globals["__file__"])
+    # path = Path(f'/Users/acushner/software/pyaoc/pyaoc{year}/inputs')
+    if isinstance(name, int):
+        name = f"{name:02d}"
+    return Path(f"{p}/inputs") / name
+
+
 def get_all_ints(s: str) -> Iterator[int]:
     """parse all ints from a string"""
-    return map(int, re.findall('[-]?\d+', s))
-    
+    return map(int, re.findall("[-]?\d+", s))
 
 
 class localtimer:
     def __enter__(self):
         self.start = time.perf_counter()
-    
+
     def __exit__(self, exc_type, exc, tb):
-        print('func took', time.perf_counter() - self.start)
+        print("func took", time.perf_counter() - self.start)
 
 
-def timer(func: Optional[Callable[P, T]]=None, *, n_times: int = 1) -> Callable[P, T]:
+def timer(func: Optional[Callable[P, T]] = None, *, n_times: int = 1) -> Callable[P, T]:
     total = 0
     ncalls = 0
 
@@ -75,8 +87,8 @@ def timer(func: Optional[Callable[P, T]]=None, *, n_times: int = 1) -> Callable[
         finally:
             total += time.perf_counter() - start
             print(
-                f'{func.__name__!r} took {(time.perf_counter() - start):.6f} seconds, '
-                f'{ncalls=} for {total:.3f} seconds'
+                f"{func.__name__!r} took {(time.perf_counter() - start):.6f} seconds, "
+                f"{ncalls=} for {total:.3f} seconds"
             )
 
     return wrapper
@@ -100,7 +112,7 @@ class Atom:
         self._val = val
 
     def __str__(self):
-        return f'Atom({self._val})'
+        return f"Atom({self._val})"
 
     __repr__ = __str__
 
@@ -130,25 +142,27 @@ def sign(n):
         return -1
     return 0
 
+
 @total_ordering
 class RC(NamedTuple):
     """represent row/column coords"""
+
     r: int
     c: int
 
     def to(self, other):
         """range from self to other"""
         yield from (
-            RC(r, c)
-            for r in range(self.r, other.r)
-            for c in range(self.c, other.c)
+            RC(r, c) for r in range(self.r, other.r) for c in range(self.c, other.c)
         )
 
     def in_bounds(self, rc_ul, rc_lr) -> bool:
         """return True if self inside the bounds of [upper_left, lower_right)"""
         return not (
-            self[0] < rc_ul[0] or self[1] < rc_ul[1]
-            or self[0] >= rc_lr[0] or self[1] >= rc_lr[1]
+            self[0] < rc_ul[0]
+            or self[1] < rc_ul[1]
+            or self[0] >= rc_lr[0]
+            or self[1] >= rc_lr[1]
         )
 
     @property
@@ -163,6 +177,7 @@ class RC(NamedTuple):
 
     def __mul__(self, n: int):
         return type(self)(self[0] * n, self[1] * n)
+
     def __floordiv__(self, other) -> RC:
         return type(self)(self[0] // other[0], self[1] // other[1])
 
@@ -187,6 +202,7 @@ class RC(NamedTuple):
     @property
     def manhattan(self):
         return abs(self.r) + abs(self.c)
+
 
 class Coord(NamedTuple):
     x: int
@@ -276,13 +292,13 @@ class SliceableDeque(deque):
 
 
 class Pickle:
-    _outdir = Path('/tmp/.pydata')
+    _outdir = Path("/tmp/.pydata")
 
     @classmethod
     def read(cls, *filenames):
         res = []
         for n in filenames:
-            with open(cls._outdir / n, 'rb') as f:
+            with open(cls._outdir / n, "rb") as f:
                 res.append(pickle.load(f))
         if len(res) == 1:
             res = res.pop()
@@ -292,21 +308,24 @@ class Pickle:
     def write(cls, **name_obj_pairs):
         os.makedirs(cls._outdir, exist_ok=True)
         for n, obj in name_obj_pairs.items():
-            with open(cls._outdir / n, 'wb') as f:
+            with open(cls._outdir / n, "wb") as f:
                 pickle.dump(obj, f)
 
 
 def identity(x):
     return x
 
+
 def take(n, iterable):
     return list(islice(iterable, n))
 
+
 class PutIter:
     """iterator that you can put back values to
-    
+
     basically allows `peek`
     """
+
     def __init__(self, iterable):
         self.it = iter(iterable)
         self._buffer = deque()
