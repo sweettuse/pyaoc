@@ -30,10 +30,9 @@ def part2(path="01.txt"):
     return sum(map(_get_cal2, read_file(path)))
 
 
-_number_map = dict(zip(string.digits, count()))
-number_name_map = (
+name_number_map = (
     dict(zip("one two three four five six seven eight nine".split(), count(1)))
-    | _number_map
+    | dict(zip(string.digits, count()))
 )
 
 
@@ -42,14 +41,14 @@ def _get_cal2(l: str) -> int:
 
 
 def _get_number(l: str, *, reverse=False):
-    agg, find = min, str.find
+    agg, find = min, l.find
     if reverse:
-        agg, find = max, str.rfind
+        agg, find = max, l.rfind
 
     idx_vals = (
         (idx, val)
-        for name, val in number_name_map.items()
-        if (idx := find(l, name)) != -1
+        for name, val in name_number_map.items()
+        if (idx := find(name)) != -1
     )
     return agg(idx_vals)[1]
 

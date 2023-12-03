@@ -7,10 +7,11 @@ from pyaoc2019.utils import mapt, read_file, timer
 frozen = True
 slots = True
 
+
 @dataclass(frozen=frozen, slots=slots)
 class Game:
     id: int
-    cube_sets: tuple[CubeSet]
+    cube_sets: tuple[CubeSet, ...]
 
     @classmethod
     def from_str(cls, s: str) -> Game:
