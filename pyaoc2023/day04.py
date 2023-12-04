@@ -21,17 +21,15 @@ class Card:
     def from_str(cls, s: str) -> Card:
         id_str, rest = s.split(":")
         numbers_str, winning_str = rest.split("|")
-        numbers, winning = map(cls._helper, (numbers_str, winning_str))
+
+        to_frozenset = lambda s: frozenset(map(int, s.split()))
+        numbers, winning = map(to_frozenset, (numbers_str, winning_str))
         return Card(
             int(id_str.split()[-1]),
             numbers,
             winning,
             len(numbers & winning),
         )
-
-    @classmethod
-    def _helper(cls, s: str) -> frozenset[int]:
-        return frozenset(int(n) for n in s.split())
 
 
 def part1(fname: str) -> int:

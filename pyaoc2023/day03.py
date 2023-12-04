@@ -86,7 +86,7 @@ def part2(path):
 
 
 def _get_data(path: str) -> Engine:
-    return Engine.from_str(read_file(path, do_split=False))
+    return Engine.from_str(read_file(path, do_split=False))  # type: ignore
 
 
 def __main():
