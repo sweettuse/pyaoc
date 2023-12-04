@@ -38,7 +38,7 @@ def part1(fname: str) -> int:
 
 def part2(fname: str) -> int:
     cards = _get_data(fname)
-    counts = dict.fromkeys((c.id for c in cards), 1)
+    counts = {c.id: 1 for c in cards}
     for c in cards:
         cur_count = counts[c.id]
         start_id = c.id + 1
