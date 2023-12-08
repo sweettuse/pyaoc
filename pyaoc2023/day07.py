@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from functools import cached_property
 from itertools import count
 
-from pyaoc2019.utils import mapt, read_file
+from pyaoc2019.utils import mapt, read_file, timer
 
 
 CARD_VALS = dict(zip("23456789TJQKA", count(1)))
@@ -57,30 +57,15 @@ class Hand:
 class Hand2(Hand):
     def _type_rank(self, cards: str) -> int:
         num_js = cards.count("J")
-        cards = cards.replace("J", "")
-
         if num_js == 5:
             cards = "AAAAA"
-        if num_js == 4:
-            cards = cards * 5
-        if num_js == 3:
-            match sorted(cards, key=CARD_VALS2.get):
-                case [low, high]:
-                    cards = high * 4 + low
-                case [card]:
-                    cards = card * 5
-        if num_js == 2:
-            match sorted(cards, key=lambda c: (cards.count(c), CARD_VALS2.get(c))):
-                case [low, mid, high]:
-                    cards = low + mid + high * 3
-                case [low, high]:
-                    cards = high * 4 + low
-                case [card]:
-                    cards = card * 5
-
-        elif num_js == 1:
-            to_try = (cards + c for c in cards)
+        elif num_js == 4:
+            cards = cards.replace("J", "") * 5
+        elif num_js:
+            no_js = cards.replace("J", "")
+            to_try = (cards.replace("J", c) for c in no_js)
             cards = max(to_try, key=self._type_rank)
+
         return super()._type_rank(cards)
 
     def _cards_rank(self) -> tuple[int, ...]:
