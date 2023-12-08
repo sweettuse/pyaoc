@@ -158,12 +158,14 @@ class Almanac:
         return res
 
 
+@timer
 def part1():
     a = Almanac.from_fname("05.txt")
     seed_ranges = [Range(s, s + 1) for s in a.seeds]
     return _calc(a, seed_ranges)
 
 
+@timer
 def part2():
     a = Almanac.from_fname("05.txt")
     chunked = list(zip(a.seeds[::2], a.seeds[1::2]))
@@ -176,7 +178,6 @@ def _calc(a: Almanac, seed_ranges: list[Range]) -> int:
     return min(r.start for l in converted for r in l)
 
 
-@timer
 def main():
     print(part1())
     print(part2())
