@@ -59,8 +59,6 @@ class Hand2(Hand):
         num_js = cards.count("J")
         if num_js == 5:
             cards = "AAAAA"
-        elif num_js == 4:
-            cards = cards.replace("J", "") * 5
         elif num_js:
             no_js = cards.replace("J", "")
             to_try = (cards.replace("J", c) for c in no_js)
