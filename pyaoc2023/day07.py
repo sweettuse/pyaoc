@@ -60,8 +60,7 @@ class Hand2(Hand):
         if num_js == 5:
             cards = "AAAAA"
         elif num_js:
-            no_js = cards.replace("J", "")
-            to_try = (cards.replace("J", c) for c in no_js)
+            to_try = (cards.replace("J", c) for c in cards.replace("J", ""))
             cards = max(to_try, key=self._type_rank)
 
         return super()._type_rank(cards)
