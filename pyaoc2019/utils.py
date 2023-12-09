@@ -28,9 +28,11 @@ T = TypeVar("T")
 P = ParamSpec("P")
 
 
-def mapt(fn: Callable[..., T], *a) -> tuple[T]:
+def mapt(fn: Callable[..., T], *a) -> tuple[T, ...]:
     return tuple(map(fn, *a))
 
+def mapl(fn: Callable[..., T], *a) -> list[T]:
+    return list(map(fn, *a))
 
 def read_file(name, year=2019, *, do_strip=True, do_split=True) -> str | list[str]:
     """note, year no longer used - now parsed by frame hacking"""
