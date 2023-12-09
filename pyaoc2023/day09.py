@@ -11,7 +11,7 @@ def _get_data(fname):
 
 
 def _get_diffs(ints: list[int]) -> Iterable[list[int]]:
-    while any(v for v in ints):
+    while any(ints):
         yield ints
         ints = [v2 - v1 for v1, v2 in pairwise(ints)]
 
