@@ -1,13 +1,15 @@
 from __future__ import annotations
-from dataclasses import dataclass
 from itertools import cycle, pairwise
 from typing import Iterable
 
-from pyaoc2019.utils import mapl, read_file
+from pyaoc2019.utils import exhaust, identity, mapl, read_file
 
 
-def _get_data(fname):
-    return [mapl(int, line.split()) for line in read_file(fname)]
+def _get_data(fname, *, reverse=False):
+    res = [mapl(int, line.split()) for line in read_file(fname)]
+    if reverse:
+        exhaust(l.reverse() for l in res)
+    return res
 
 
 def _get_diffs(ints: list[int]) -> Iterable[list[int]]:
@@ -32,6 +34,16 @@ def part2(fname: str) -> int:
     )
 
 
+def both(fname: str, *, reverse: bool) -> int:
+    return sum(
+        diff[-1]
+        for row_diffs in map(_get_diffs, _get_data(fname, reverse=reverse))
+        for diff in row_diffs
+    )
+
+
 if __name__ == "__main__":
     print(part1("09.txt"))
     print(part2("09.txt"))
+    print(both("09.txt", reverse=False))
+    print(both("09.txt", reverse=True))

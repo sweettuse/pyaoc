@@ -15,14 +15,13 @@ def _to_ints(l):
 
 
 def _get_cal(ints):
-    ints = list(ints)
-    match len(ints):
-        case 0:
-            raise Exception
-        case 1:
-            a = b = ints[0]
+    match list(ints):
+        case [a, *_, b]:
+            ...
+        case [a]:
+            b = a
         case _:
-            a, b = ints[0], ints[-1]
+            raise Exception
     return 10 * a + b
 
 
@@ -30,10 +29,9 @@ def part2(path="01.txt"):
     return sum(map(_get_cal2, read_file(path)))
 
 
-name_number_map = (
-    dict(zip("one two three four five six seven eight nine".split(), count(1)))
-    | dict(zip(string.digits, count()))
-)
+name_number_map = dict(
+    zip("one two three four five six seven eight nine".split(), count(1))
+) | dict(zip(string.digits, count()))
 
 
 def _get_cal2(l: str) -> int:
@@ -41,14 +39,9 @@ def _get_cal2(l: str) -> int:
 
 
 def _get_number(l: str, *, reverse=False):
-    agg, find = min, l.find
-    if reverse:
-        agg, find = max, l.rfind
-
+    agg, find = (min, l.find) if reverse else (max, l.rfind)
     idx_vals = (
-        (idx, val)
-        for name, val in name_number_map.items()
-        if (idx := find(name)) != -1
+        (idx, val) for name, val in name_number_map.items() if (idx := find(name)) != -1
     )
     return agg(idx_vals)[1]
 
