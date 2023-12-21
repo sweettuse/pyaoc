@@ -11,26 +11,24 @@ class Machine:
     parts: list[Part]
     accepted: list[Part] = field(default_factory=list)
     rejected: list[Part] = field(default_factory=list)
-    
 
     @classmethod
     def from_str(cls, s: str) -> Machine:
-        flows, parts = s.split('\n\n')
+        flows, parts = s.split("\n\n")
         wfs = {wf.name: wf for wf in map(Workflow.from_str, flows.splitlines())}
         parts = mapl(Part.from_str, parts.splitlines())
         return cls(wfs, parts)
 
     def process(self, part: Part):
-        wf = self.workflows['in']
-        while (res := wf.process(part)) not in 'AR':
+        wf = self.workflows["in"]
+        while (res := wf.process(part)) not in "AR":
             wf = self.workflows[res]
-        
-        (self.accepted if res == 'A' else self.rejected).append(part)
-    
+
+        (self.accepted if res == "A" else self.rejected).append(part)
+
     def run(self):
         exhaust(self.process, self.parts)
         return sum(p.value for p in self.accepted)
-
 
 
 @dataclass
@@ -42,7 +40,7 @@ class Workflow:
     def from_str(cls, s: str) -> Workflow:
         name, rest = s[:-1].split("{")
         return cls(name, mapl(Rule.from_str, rest.split(",")))
-    
+
     def process(self, part: Part) -> str:
         return next(filter(bool, (rule(part) for rule in self.rules)))  # type: ignore
 
@@ -77,19 +75,18 @@ class Part:
     @classmethod
     def from_str(cls, s: str):
         return cls(**eval(s.replace("{", "dict(").replace("}", ")")))
-    
+
     @property
     def value(self):
         return sum(self)
-    
+
     def __iter__(self):
         for f in self.__dataclass_fields__:
             yield getattr(self, f)
 
 
-
 def part1(fname: str):
-    machine =Machine.from_str(read_file(fname, do_split=False))  # type:ignore
+    machine = Machine.from_str(read_file(fname, do_split=False))  # type:ignore
     return machine.run()
 
 
