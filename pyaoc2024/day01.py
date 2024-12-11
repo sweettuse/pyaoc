@@ -3,9 +3,10 @@ from collections import Counter
 
 from pyaoc2019.utils import read_file
 
-def _read_data() -> tuple[list[int], list[int]]:
+def _read_data(*, test: bool) -> tuple[list[int], list[int]]:
     l1, l2 = [], []
-    for r in read_file("01.txt"):
+    fname = "01.test.txt" if test else "01.txt"
+    for r in read_file(fname):
         i1, i2 = map(int, r.split())
         l1.append(i1)
         l2.append(i2)
@@ -23,7 +24,7 @@ def part2(data):
     return sum(i1 * c.get(i1, 0) for i1 in l1)
 
 def _main():
-    data = _read_data()
+    data = _read_data(test=False)
 
     print(part1(data))
     print(part2(data))

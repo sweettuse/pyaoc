@@ -3,6 +3,7 @@ from rich import print as rprint
 
 from pyaoc2019.utils import RC, read_file, Direction
 
+
 def _read_data(*, test: bool) -> dict[RC, int]:
     fname = "10.test.txt" if test else "10.txt"
     return {
@@ -10,6 +11,7 @@ def _read_data(*, test: bool) -> dict[RC, int]:
         for r, row in enumerate(read_file(fname))
         for c, v in enumerate(row)
     }
+
 
 def _trailhead_score(data: dict[RC, int], start: RC) -> int:
     points = [(start, data[start])]
@@ -23,20 +25,17 @@ def _trailhead_score(data: dict[RC, int], start: RC) -> int:
         if height == 9:
             res.add(cur)
             continue
-        
+
         for d in Direction:
             if data.get(cur + d.value) == height + 1:
                 points.append((cur + d.value, height + 1))
 
-        
     return len(res)
 
+
 def part1(data) -> int:
-    return sum(
-        _trailhead_score(data, rc)
-        for rc, v in data.items()
-        if v == 0
-    )
+    return sum(_trailhead_score(data, rc) for rc, v in data.items() if v == 0)
+
 
 def _trailhead_rating(data: dict[RC, int], start: RC) -> int:
     points = [(start, data[start], (start,))]
@@ -50,28 +49,24 @@ def _trailhead_rating(data: dict[RC, int], start: RC) -> int:
         if height == 9:
             res.add(path)
             continue
-        
+
         for d in Direction:
             if data.get(nxt := cur + d.value) == height + 1:
-                points.append((nxt, height + 1, path + (nxt, )))
+                points.append((nxt, height + 1, path + (nxt,)))
 
-        
     return len(res)
 
-def part2(data):
-    return sum(
-        _trailhead_rating(data, rc)
-        for rc, v in data.items()
-        if v == 0
-    )
 
-    
+def part2(data):
+    return sum(_trailhead_rating(data, rc) for rc, v in data.items() if v == 0)
+
 
 def _main():
     data = _read_data(test=False)
 
     print(part1(data))
     print(part2(data))
+
 
 if __name__ == "__main__":
     _main()
