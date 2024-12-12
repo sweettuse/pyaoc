@@ -57,7 +57,7 @@ def get_file_path(name, *, depth=1):
 
 def get_all_ints(s: str) -> Iterator[int]:
     """parse all ints from a string"""
-    return map(int, re.findall("[-]?\d+", s))
+    return map(int, re.findall(r"[-]?\d+", s))
 
 
 class localtimer:
@@ -191,6 +191,10 @@ class RC(NamedTuple):
 
     def __eq__(self, other):
         return self[0] == other[0] and self[1] == other[1]
+
+    def __hash__(self) -> int:
+        """added because pylance is dumb and thinks RC is not hashable without this 🙄"""
+        return tuple.__hash__(self)
 
     def __rmod__(self, other) -> RC:
         return self % other
