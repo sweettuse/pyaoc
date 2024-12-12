@@ -6,7 +6,7 @@ from itertools import groupby, pairwise
 from more_itertools import first
 from rich import print as rprint
 
-from pyaoc2019.utils import Direction, read_file, RC
+from pyaoc2019.utils import Direction, read_file, RC, timer
 
 
 def _read_data(*, test: bool) -> dict[RC, str]:
@@ -70,13 +70,13 @@ def _num_contiguous_groups(vals: list[int]) -> int:
 
 def _fill(garden: dict[RC, str], rc: RC) -> Fill:
     """fill a la ms paint contiguous areas"""
-    points = [rc]
+    stack = [rc]
     seen = set()
     target = garden[rc]
     matches: set[RC] = set()
     fences: defaultdict[RC, set[RC]] = defaultdict(set)
-    while points:
-        cur = points.pop()
+    while stack:
+        cur = stack.pop()
         if cur in seen:
             continue
         seen.add(cur)
@@ -85,25 +85,26 @@ def _fill(garden: dict[RC, str], rc: RC) -> Fill:
             continue
 
         matches.add(cur)
+
         for d in Direction:
             offset = d.value.rc
             nxt = cur + offset
             if garden.get(nxt) == target:
-                points.append(nxt)
+                stack.append(nxt)
             else:
                 fences[cur].add(offset)
-        points.append(cur)
+
     return Fill(target, matches, dict(fences))
 
 
+@timer
 def _get_fills(data) -> list[Fill]:
-    garden = data.copy()
-    points = set(garden)
+    points = set(data)
 
     res = []
     while points:
         cur = points.pop()
-        f = _fill(garden, cur)
+        f = _fill(data, cur)
         res.append(f)
         points -= f.rcs
 
